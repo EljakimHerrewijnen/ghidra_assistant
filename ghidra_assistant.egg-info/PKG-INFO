@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: ghidra-assistant
+Version: 0.0.1
+Summary: Package to assist ghidra
+Author-email: Eljakim Herrewijnen <e.herrewijnen@gmail.com>
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent, Linux preferred
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown

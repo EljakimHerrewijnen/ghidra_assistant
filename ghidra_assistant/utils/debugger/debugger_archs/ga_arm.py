@@ -1,6 +1,6 @@
 import struct
-from utils.debugger.debugger_archs.base_arch import *
-from utils.utils import *
+from ...debugger.debugger_archs.base_arch import *
+from ...utils import *
 
 if typing.TYPE_CHECKING:
     from concrete_device import ConcreteDevice

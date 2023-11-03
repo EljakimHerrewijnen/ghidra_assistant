@@ -1,4 +1,4 @@
-from ghidra_assistant import *
+from .ghidra_assistant import *
 import argparse
 import importlib
 from .utils.utils import *
@@ -194,7 +194,7 @@ class ConcreteDevice():
         self.read = self.arch_dbg.read
         self.write = self.arch_dbg.write
         self.memdump_region = self.arch_dbg.memdump_region
-        # self.memdump_region_small = self.arch_dbg.memdump_region_small 
+        # self.memdump_region_small = self.arch_dbg.memdump_region_small
         self.memwrite_region = self.arch_dbg.memwrite_region
         self.get_debugger_location = self.arch_dbg.get_debugger_location
         self.jump_to = self.arch_dbg.jump_to

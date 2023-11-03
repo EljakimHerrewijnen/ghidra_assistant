@@ -1,9 +1,9 @@
 import struct
-from utils.bit_helper import BitHelper
-from utils.archs.arm64.arm64_processor_state import ARM64_Concrete_State
-from utils.debugger.debugger_archs.base_arch import *
-from utils.utils import *
-from utils.asm_utils import ShellcodeCrafterARM64
+from ...bit_helper import BitHelper
+from ...archs.arm64.arm64_processor_state import ARM64_Concrete_State
+from ...debugger.debugger_archs.base_arch import *
+from ...utils import *
+from ...archs.asm_utils import ShellcodeCrafterARM64
 from keystone import *
 from capstone import *
 

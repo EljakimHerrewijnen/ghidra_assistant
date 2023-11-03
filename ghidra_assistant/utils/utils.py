@@ -147,7 +147,7 @@ def simple_hexdump(src, length=16, sep='.', start = 0):
     lines = []
     for c in range(0, len(src), length):
         chars = src[c:c+length]
-        
+
         hexstr = ' '.join(["%02x" % ord(x) for x in chars]) if type(chars) is str else ' '.join(['{:02x}'.format(x) for x in chars])
         if len(hexstr) > 24:
             hexstr = "%s %s" % (hexstr[:24], hexstr[24:])
@@ -159,6 +159,8 @@ def print_addr64(addr : bytes):
     print(hex(struct.unpack("<Q", addr)[0]))
 
 def hexdump(buf, title="", color=6, start=0, remove_dup=True):
+    if type(buf) == bytearray:
+        buf = bytes(buf)
     color_start = "\033[3%d;1m" % color
     color_start_no_bold = "\033[0m\033[3%dm" % color
     color_stop = "\033[0m"

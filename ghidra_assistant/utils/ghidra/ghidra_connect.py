@@ -1,5 +1,5 @@
 import ghidra_bridge
-from utils.ghidra.pyhidra import *
+from ...utils.ghidra.pyhidra import *
 import typing
 if typing.TYPE_CHECKING:
     import ghidra
