@@ -1,0 +1,6 @@
+tqdm
+ghidra-stubs
+ghidra_bridge
+pyhidra
+capstone
+keystone-engine
