@@ -1,11 +1,12 @@
 import ghidra_bridge
 from ...utils.ghidra.pyhidra import *
+from ..utils import *
+from ..definitions import *
 import typing
 if typing.TYPE_CHECKING:
     import ghidra
     from ghidra.ghidra_builtins import *
 
-from utils.definitions import *
 
 # actual code follows here
 from tqdm import tqdm
@@ -168,7 +169,7 @@ class Ghidra:
         tmode_val = currentProgram.programContext.getRegisterValue(self._reg_tmode, toAddr(addr))
         return bool(tmode_val.unsignedValueIgnoreMask)
 
-    def get_ghidra_memory_maps_r(self):
+    def get_ghidra_memory_maps_r(self) -> []:
         '''
         Download memory maps with remote eval. Which is much, much faster than the old way.
 
@@ -272,6 +273,7 @@ class Ghidra:
     def rename_function(self, addr, name):
         '''
         Rename a function on an address. Return True if succes, else False.
+        TODO create remote eval
         '''
 
         tr = currentProgram.startTransaction(f"Naming function {hex(addr)} to {name}")

@@ -1,6 +1,11 @@
 # Ghidra Assistant
 Contains lots of bugs!
 
+## Setup
+```bash
+pip install build
+```
+
 ## Building
 To build the GA
 ```bash
