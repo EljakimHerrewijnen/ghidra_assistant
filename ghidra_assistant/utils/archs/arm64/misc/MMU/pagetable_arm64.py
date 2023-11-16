@@ -2,14 +2,14 @@
 This file will be deprecated in favor of the MMU!
 '''
 
-from utils.utils import *
-from utils.bit_helper import BitHelper
-from utils.arm64_misc.tcr_el.tcr_el3 import TCR_EL3
-from utils.arm64_misc.MMU.arm64_pte import ARM64_PTE
+from .....utils import *
+from .....bit_helper import BitHelper
+from ..tcr_el.tcr_el3 import TCR_EL3
+from ..MMU.arm64_pte import ARM64_PTE
 import math
 
 if typing.TYPE_CHECKING:
-    from utils.debugger.debugger_archs.ga_arm64 import GA_arm64_debugger
+    from .....debugger.debugger_archs.ga_arm64 import GA_arm64_debugger
 
 class PagetableARM64():
     '''
@@ -22,7 +22,7 @@ class PagetableARM64():
     '''
     def load_entry(self, addr):
         return self.debugger.loadQ(addr) & 0xfffffff000
-    
+
     def Pagewalk(self, ttbr, tcr):
         if ttbr % 0x1000 != 0:
             warn(f"TTBR_ELX : Not page aligned: {hex(ttbr)}")
@@ -38,7 +38,7 @@ class PagetableARM64():
             pte = ARM64_PTE(u64(ptp_dump[i * 8: (i* 8) + 8]))
             pte.print_entry()
 
-    
+
     def __init__(self, debugger : "GA_arm64_debugger", ptp_pa, granule_size, region_sz, page_size = 0x1000, pt_va_base=0, upper_region=False) -> None:
         '''
             Pagetable managment on ARM64
@@ -59,10 +59,10 @@ class PagetableARM64():
         self.ptp_size = 2**granule_size
         self.ptp_entries = self.ptp_size // 8   # Entry is always 8 bytes.
         self.va_size // self.ptp_size
-        
+
         # assuming that the PA range is 47:0 (48-bits)
         self.table_idx_bits = int(math.log(self.ptp_entries, 2)) #stride
-        self.block_offset_bits = int(math.log(granule_size, 2)) 
+        self.block_offset_bits = int(math.log(granule_size, 2))
 
         self.start_level = 3 - (self.tsz - self.block_offset_bits) // self.table_idx_bits
         if (self.tsz - self.block_offset_bits) % self.table_idx_bits == 0:
@@ -72,7 +72,7 @@ class PagetableARM64():
         # Calculate max amount of levels
         self.levels = int(math.ceil((64.0 - region_sz - granule_size)/self.table_idx_bits))
 
-        # index tables locally        
+        # index tables locally
         self.tables = [[0, ptp_pa]]
         # self.next_tables = []
         if self.upper_region:
@@ -101,11 +101,11 @@ class PagetableARM64():
                 for entry_no in range(self.ptp_entries):
                     entry = self.load_entry(pt_va_base + table_addr + entry_no * 8) # Will result in a PTE
                     pte_entry = ARM64_PTE(entry)
-                    
+
                     # TODO add sanity check for each PTE
 
                     if pte_entry.memory_type_bits == 3:
-                        # Next table entry. 
+                        # Next table entry.
                         info(f"PAGETABLE: pte_entry.address")
                         self.tables += [[new_va, (entry & 0xfffffff000)]]
                         # if is_last_level:
@@ -155,7 +155,7 @@ class PagetableARM64():
                 print("%016lx: %s" % (m[0], m[1]))
         else:
             print("No virtual mappings found")
-    
+
 '''
 WILL PROBABLY BE DEPRECATED!!
 '''
@@ -191,7 +191,7 @@ class PagetableARM64_el3:
                 self.entries.append(pte)
             else:
                 raise NotImplemented
-            
+
     def print_entries(self):
         self.entries[0].print_header()
         for pte in self.entries:

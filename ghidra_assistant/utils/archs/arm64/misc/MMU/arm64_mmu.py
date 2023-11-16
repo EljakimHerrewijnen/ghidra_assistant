@@ -1,14 +1,14 @@
-from utils.utils import *
-from utils.arm64_misc.MMU.pagetable_arm64 import PagetableARM64
+from .....utils import *
+from ..MMU.pagetable_arm64 import PagetableARM64
 
 if typing.TYPE_CHECKING:
-    from utils.debugger.debugger_archs.ga_arm64 import GA_arm64_debugger
+    from .....debugger.debugger_archs.ga_arm64 import GA_arm64_debugger
 
 class ARM64_MMU():
     def __init__(self, debugger : "GA_arm64_debugger") -> None:
         self.debugger = debugger
-        # self.el3_ptp = 
-        
+        # self.el3_ptp =
+
     def load_pagetables(self):
         '''
             Loads the pagetables from a running device.

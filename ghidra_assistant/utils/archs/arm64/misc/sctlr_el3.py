@@ -1,5 +1,5 @@
-from utils.utils import *
-from utils.bit_helper import BitHelper
+from ....utils import *
+from ....bit_helper import BitHelper
 
 TME_SCTLR_EL3       = 53
 TMT_SCTLR_EL3       = 51

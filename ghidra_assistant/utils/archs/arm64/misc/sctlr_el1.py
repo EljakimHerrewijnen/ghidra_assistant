@@ -1,5 +1,5 @@
-from utils.utils import *
-from utils.bit_helper import BitHelper
+from ....utils import *
+from ....bit_helper import BitHelper
 
 MMU_SCTLR_EL1       = 0
 A_SCTLR_EL1         = 1

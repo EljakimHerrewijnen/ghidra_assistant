@@ -1,7 +1,7 @@
 from enum import Enum
-from utils.utils import *
-from utils.bit_helper import BitHelper
-from utils.arm64_misc.tcr_el.tcr_el3 import TCR_EL3
+from .....utils import *
+from .....bit_helper import BitHelper
+from ..tcr_el.tcr_el3 import TCR_EL3
 
 EL3_LVL0_CONTIG_BIT     = 53
 EL3_LVL0_PXN_BIT        = 54
@@ -19,7 +19,7 @@ class MemoryType(Enum):
     UNKNOWN = 0xff
 
 class ARM64_PTE(BitHelper):
-    ''' 
+    '''
     https://developer.arm.com/documentation/102416/0100/Single-level-table-at-EL3
     https://github.com/grant-h/gdbscripts/blob/master/aarch64/aarch64-pagewalk.py
     https://developer.arm.com/documentation/102376/0100/Describing-the-memory-type
@@ -57,7 +57,7 @@ class ARM64_PTE(BitHelper):
             On a Warm reset, this field resets to an architecturally UNKNOWN value.
         '''
         return (self.value >> 9 & 0b11)
-    
+
     @sh.setter
     def sh(self, value):
         if value == 0:
@@ -86,10 +86,10 @@ class ARM64_PTE(BitHelper):
         01	Read and write	Read and write
         10	No access	Read-only
         11	Read-only	Read-only
-        
+
         '''
         return self.get_bits(7, 8)
-    
+
     @ap.setter
     def ap(self, value):
         if value == 0:
@@ -119,7 +119,7 @@ class ARM64_PTE(BitHelper):
         When 0, the page is only accessible by Secure world, with 1 accessible by all.
         '''
         return self.is_set(EL3_LVL0_NS_BIT)
-    
+
     @ns.setter
     def ns(self, value):
         if value == 0:
@@ -133,7 +133,7 @@ class ARM64_PTE(BitHelper):
         When 0, the entry is not part of a contiguous block
         '''
         return self.is_set(EL3_LVL0_AF_BIT)
-    
+
     @af.setter
     def af(self, value):
         if value == 0:
@@ -147,7 +147,7 @@ class ARM64_PTE(BitHelper):
         Not used at EL3
         '''
         return self.is_set(EL3_LVL0_NG_BIT)
-    
+
     @ng.setter
     def ng(self, value):
         if value == 0:
@@ -161,21 +161,21 @@ class ARM64_PTE(BitHelper):
         When 0, the entry is not part of a contiguous block
         '''
         return self.is_set(EL3_LVL0_CONTIG_BIT)
-    
+
     @contig.setter
     def contig(self, value):
         if value == 0:
             self.clear_bit(EL3_LVL0_CONTIG_BIT)
         else:
             self.set_bit(EL3_LVL0_CONTIG_BIT)
-    
+
     @property
     def uxn(self):
         '''
         Not used in EL3
         '''
         return self.is_set(EL3_LVL0_UXN_BIT)
-    
+
     @uxn.setter
     def uxn(self, value):
         if value == 0:
@@ -186,10 +186,10 @@ class ARM64_PTE(BitHelper):
     @property
     def pxn(self):
         '''
-        Page eXecute Never. When set to 1 this page can never be executed. 
+        Page eXecute Never. When set to 1 this page can never be executed.
         '''
         return self.is_set(EL3_LVL0_PXN_BIT)
-    
+
     @pxn.setter
     def pxn(self, value):
         if value == 0:
@@ -203,14 +203,14 @@ class ARM64_PTE(BitHelper):
         PFN: Page file number. Depending on the granularity size this can be calculated into an address. E.g 4KB pagesize means PFN * 0x1000 for the physicall address.
         '''
         return (self.value >> 12 & 0b111111111111111111111111111111111111111)
-    
+
         # TODO TEST
         return (self.value >> 12 & 0b111111111111111111111111111111111111111000000000000 >> 12)
         return (self.value & 0b111111111111111111111111111111111111111000000000000) >> 12
-    
+
         self.value = (self.value & ~0b111111111111111111111111111111111111111000000000000) | (x << 12)
         0x7FFFFFFFFF000
-    
+
     @pfn.setter
     def pfn(self, pfn_value):
         # this value must be the correct value, not the absolute address. See the PFN documentation
@@ -227,7 +227,7 @@ class ARM64_PTE(BitHelper):
 
         # Combine the new value with the cleared original number
         self.value = cleared_number | shifted_new_value
-    
+
     @property
     def memory_type(self):
         if self.memory_type_bits == 3:
@@ -244,11 +244,11 @@ class ARM64_PTE(BitHelper):
         Get the physical address of a PTE. This address is calculated by using the PFN * the granule size(usually 4KB)
         '''
         return self.pfn * self.tcr_el3.page_size
-    
+
     @address.setter
     def address(self, value):
-        self.pfn = value // self.tcr_el3.page_size    
-    
+        self.pfn = value // self.tcr_el3.page_size
+
     def print_header(self):
         print(f"{COLOR_RED}+---------------------------------------------------------------------------------+{COLOR_END}")
         print(f"{COLOR_LBLUE}|63 : 59|58:55|54 |53 |52 |   51 : 12    |11|10|9:8|7:6|5 |4:2 |1:0|--------------+{COLOR_END}")
@@ -261,4 +261,3 @@ class ARM64_PTE(BitHelper):
             self.print_header()
         print(f"{COLOR_LBLUE}| {self.get_bits(59, 63)} |{self.get_bits(55, 58)} | {int(self.uxn)} | {int(self.pxn)} | {int(self.contig)} |{self.pretty_print_value(self.pfn)}|{int(self.ng)} |{int(self.af)} | {self.sh} | {self.ap} |{int(self.ns)} |{self.get_bits(2, 4)} |{self.get_bits(0,1)} |{self.pretty_print_value(hex(self.address))}|{COLOR_END}")
 
-    

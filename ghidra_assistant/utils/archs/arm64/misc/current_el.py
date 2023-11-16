@@ -1,5 +1,5 @@
-from utils.utils import *
-from utils.bit_helper import BitHelper
+from ....utils import *
+from ....bit_helper import BitHelper
 
 class CURRENT_EL(BitHelper):
     '''
@@ -21,4 +21,3 @@ class CURRENT_EL(BitHelper):
             #11
             return 3
 
-    

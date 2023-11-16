@@ -3,7 +3,7 @@ from ...bit_helper import BitHelper
 from ...archs.arm64.arm64_processor_state import ARM64_Concrete_State
 from ...debugger.debugger_archs.base_arch import *
 from ...utils import *
-from ...archs.asm_utils import ShellcodeCrafterARM64
+from ...archs.arm64.asm_arm64 import ShellcodeCrafterARM64
 from keystone import *
 from capstone import *
 

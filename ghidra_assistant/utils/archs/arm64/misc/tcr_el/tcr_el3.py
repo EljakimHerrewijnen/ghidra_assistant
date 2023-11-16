@@ -1,5 +1,5 @@
-from utils.utils import *
-from utils.arm64_misc.tcr_el.tcr_elx import TCR_ELX
+from .....utils import *
+from .tcr_elx import TCR_ELX
 
 
 TCR_EL3_DS          = 32
@@ -29,7 +29,7 @@ class TCR_EL3(TCR_ELX):
             self.tg0_bits = 14
         else:
             info("TG0 reserved")
-    
+
     @property
     def tcma(self):
         '''
@@ -39,7 +39,7 @@ class TCR_EL3(TCR_ELX):
             reserved
         '''
         return self.is_set(TCR_EL3_TCMA)
-    
+
     @tcma.setter
     def tcma(self, value):
         self.set_bit_value(TCR_EL3_TCMA, value)
@@ -53,7 +53,7 @@ class TCR_EL3(TCR_ELX):
             reserved
         '''
         return self.is_set(TCR_EL3_TBID)
-    
+
     @tcma.setter
     def tbid(self, value):
         self.set_bit_value(TCR_EL3_TBID, value)
@@ -63,7 +63,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_HWU62)
-    
+
     @hwu62.setter
     def hwu61(self, value):
         self.set_bit_value(TCR_EL3_HWU62, value)
@@ -73,7 +73,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_HWU61)
-    
+
     @hwu61.setter
     def hwu61(self, value):
         self.set_bit_value(TCR_EL3_HWU61, value)
@@ -83,7 +83,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_HWU60)
-    
+
     @hwu60.setter
     def hwu60(self, value):
         self.set_bit_value(TCR_EL3_HWU60, value)
@@ -93,7 +93,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_HWU59)
-    
+
     @hwu59.setter
     def hwu59(self, value):
         self.set_bit_value(TCR_EL3_HWU59, value)
@@ -105,7 +105,7 @@ class TCR_EL3(TCR_ELX):
         When set to 1 the permissions are disabled.
         '''
         return self.is_set(TCR_EL3_HPD)
-    
+
     @hpd.setter
     def hpd(self, value):
         self.set_bit_value(TCR_EL3_HPD, value)
@@ -116,7 +116,7 @@ class TCR_EL3(TCR_ELX):
 
         '''
         return self.is_set(TCR_EL3_HD)
-    
+
     @hd.setter
     def hd(self, value):
         self.set_bit_value(TCR_EL3_HD, value)
@@ -126,7 +126,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_HA)
-    
+
     @ha.setter
     def ha(self, value):
         self.set_bit_value(TCR_EL3_HA, value)
@@ -136,7 +136,7 @@ class TCR_EL3(TCR_ELX):
         '''
         '''
         return self.is_set(TCR_EL3_DS)
-    
+
     @ds.setter
     def ds(self, value):
         self.set_bit_value(TCR_EL3_DS, value)
@@ -147,7 +147,7 @@ class TCR_EL3(TCR_ELX):
         When set to 1 the top byte is ignored for address calculation on TTBR0_EL3
         '''
         return self.is_set(TCR_EL3_TBI)
-    
+
     @tbi.setter
     def tbi(self, value):
         self.set_bit_value(TCR_EL3_TBI, value)
@@ -155,23 +155,23 @@ class TCR_EL3(TCR_ELX):
     @property
     def ps(self):
         return (self.value >> 16) & 0b111
-    
+
     @ps.setter
     def ps(self, value):
         raise NotImplemented
-    
+
     @property
     def pagesize_bits(self):
         return (32+4*self.ps)
-    
+
     @property
     def tg0(self):
         return (self.value >> 14) & 0b11
-    
+
     @tg0.setter
     def tg0(self, value):
         raise NotImplemented
-    
+
     # @property
     # def granularity(self):
     #     val = (self.value >> 14 & 0b11)
@@ -182,11 +182,11 @@ class TCR_EL3(TCR_ELX):
     #     else:
     #         #0b10
     #         return 0x4000 #16Kb
-        
+
     # @granularity.setter
     # def granularity(self, value):
     #     raise NotImplemented
-    
+
     @property
     def sh0(self):
         '''
@@ -197,7 +197,7 @@ class TCR_EL3(TCR_ELX):
     @sh0.setter
     def sh0(self, value):
         raise NotImplemented
-    
+
     @property
     def orgn0(self):
         '''
@@ -207,7 +207,7 @@ class TCR_EL3(TCR_ELX):
     @orgn0.setter
     def orgn0(self, value):
         raise NotImplemented
-    
+
     @property
     def irgn0(self):
         '''
@@ -217,42 +217,42 @@ class TCR_EL3(TCR_ELX):
     @irgn0.setter
     def irgn0(self, value):
         raise NotImplemented
-    
+
     @property
     def t0sz(self):
         '''
         '''
         return self.value & 0b111111
-        # return self.get_bits(0, 5) 
+        # return self.get_bits(0, 5)
 
     @t0sz.setter
     def t0sz(self, value):
         raise NotImplemented
-    
+
     @property
     def translation_size(self):
         return 2 ** (64 - (self.value >> 5 & 0b11111))
-    
+
     @translation_size.setter
     def translation_size(self, value):
         raise NotImplemented
-    
+
     @property
     def virtual_address_size(self):
         return 2**(64-self.t0sz)
-    
+
     @virtual_address_size.setter
     def virtual_address_size(self, value):
         raise NotImplemented
-    
+
     @property
     def page_size(self):
         return (2**self.tg0_bits >> 10) * KB
-    
+
     @page_size.setter
     def page_size(self, value):
         raise NotImplemented
-    
+
     @property
     def max_size(self):
         return (2**(64-self.t0sz)-1)
