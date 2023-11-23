@@ -56,9 +56,9 @@ class GA_arm64_debugger(BaseArch_debugger):
             if len(d) == blk_sz:
                 self.write(b"ACK\x00")
             received += d
-        if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
-            self.write(b"ACK\x00")
-            received += self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        # if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+        #     self.write(b"ACK\x00")
+        #     received += self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
         return received
 
     def memdump_region_small(self, offset, size):
