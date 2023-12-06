@@ -1,0 +1,120 @@
+========
+Titan M2
+========
+Docs about the ``Titan M2`` fuzzer and implementation by the NFI.
+
+Setup
+=====
+
+Setup ``config.py`` file so that we can reuse the code made by ``Synacktiv``. Create a file in the *source/TitanM2EmulatorNFI* called **config.py** and add the following contents:
+
+.. code:: python
+
+    GHIDRA_ASSISTANT_PATH="" # Irrelevant for now
+    TITANM2_EMULATOR_PATH = "/home/eljakim/Work/Opblaaskrokodil/opblaaskrokodil/source/TitanM2Emulator"
+
+
+Follow the instructions in :ref:`fuzzer_setup_label` to build and install all Dependencies.
+Next, setup a python3 virtual environment and install the dependencies:
+
+.. code:: console
+
+    Setup python3 environment
+    $ python3 -m venv venv/
+    $ source venv/bin/activate
+    $ pip3 install -r requirements.txt
+
+Install ``protobuf-compiler``
+
+.. code-block:: console
+
+    $ sudo apt install protobuf-compiler libstdc++-12-dev
+
+
+Build Clang 17
+--------------
+Build and install ``Clang 17``.
+
+.. code-block:: bash
+
+    git clone --depth=1 https://github.com/llvm/llvm-project.git
+    cd llvm-project
+    mkdir build
+    cd build
+    # compiler-rt for libclang_rt.fuzzer_no_main.a
+    cmake -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm
+    make
+
+And install ``Clang17`` system wide:
+
+.. code-block:: console
+
+    $ sudo make install
+
+Copy llvm-project/build/lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.fuzzer_no_main.a to the ``fuzzer_proto`` directory.
+
+libprotobuf-mutator
+-------------------
+
+Build and install libprotobuf-mutator
+
+.. code-block:: bash
+
+    git clone https://github.com/google/libprotobuf-mutator
+    mkdir build
+    cd build
+    # DLIB_PROTO_MUTATOR_TESTING not needed but must faster and it needs internet
+    cmake .. -GNinja -DLIB_PROTO_MUTATOR_TESTING=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
+    ninja
+    sudo ninja install
+
+Next, build and install all other dependencies for unicorn and fuzzing:
+
+.. code:: console
+
+    Get and build unicorn
+    $ git clone git@github.com:unicorn-engine/unicorn.git
+    $ cd unicorn
+    $ git checkout e9c1c17f6df8f8f5da85ee80ad527452db5870ce
+    $ git apply ../unicorn.patch
+
+    Build
+    $ cd bindings/python/
+    $ python3 setup.py install
+
+Run Emulator
+============
+You can run the emulator by running the ``GA_emulator`` file:
+
+.. code:: console
+
+    $ python3 GA_emulator.py
+
+Update Protobufs
+----------------
+Protobufs *should* be backwards compatible.
+
+.. code-block:: console
+
+    git clone https://android.googlesource.com/platform/external/nos/host/generic
+    cd generic/generic/nugget/proto
+    find ./ -name "*.proto" -exec protoc {} --cpp_out=. --python_out=. \;
+    cp -rf nugget ../../../nugget_update
+    cd ../../../ && rm -rf generic/
+
+nugget_update now contains the newest commands.
+
+Development notes
+=================
+
+.. include:: development.rst
+
+
+
+.. include:: flash/flash_layout.rst
+
+
+.. include:: emulator/emulator_notes.rst
+
+
+.. include:: bugs/index.rst

@@ -1,0 +1,122 @@
+**************
+Amlogic S905X3
+**************
+
+This Amlogic processor is in a lot of Android TV boxes, which you can buy on marketplaces like Aliexpress. 
+These devices are fun to buy because they are cheap but have quite a lot of pheriperals and features, which you would usually not have in a development board.
+
+The device used in here is the ``VONTAR X96 Air`` which is `available on aliexpress <https://nl.aliexpress.com/item/4000218231701.html?spm=a2g0o.order_list.order_list_main.140.21ef79d2UAsDbQ&gatewayAdapt=glo2nld>`_.
+
+This device has the following features:
+
+    * 4GB LPDDR4 RAM
+    * 64GB eMMC storage
+    * 1000Mbit ethernet
+    * Wifi & Bluetooth
+
+Bootrom Exploit
+===============
+
+There is already a bootrom vulnerability for this SoC family, which was published on `fred's blog <https://fredericb.info/2021/02/amlogic-usbdl-unsigned-code-loader-for-amlogic-bootrom.html>`_.
+This vulnerability has not yet been exploited on this specific SoC type, so let's first exploit it.
+
+Let's first take a look at the memory layout used by the SoC
+
+.. drawio-image:: soc_memory_1.drawio
+   :export-scale: 150
+
+According to the documentation from fred's notes, the vulnerability is in the handling of the **REQ_WR_LARGE_MEM** command. 
+This command does not check if we send empty transfers and due to this we can overflow the download buffer and overwrite our ``Link Register (LR)``.
+
+To check if this vulnerability is present we will first see if we can crash the device. We do this by trying to overflow a large portion of the download buffer and to send payloads with valid pointers to the start of the bootrom. 
+We should be able to send at least 64kb of data to the download buffer, if we can overflow the first part we should at some point get a crash and have an indication of where the stack is located on the target device.
+
+The code to do this is here:
+
+.. code-block:: python
+
+    def test_vulnerability():
+        device = AmlogicDevice()
+        controlData = pack('<IIII', D_BUFFER_START, D_BUFFER_MAX, 0, 0)
+        device.dev.ctrl_transfer(bmRequestType = 0x40,
+            bRequest = REQ_WR_LARGE_MEM,
+            wValue = BULK_TRANSFER_SIZE,
+            wIndex = 100000,
+            data_or_wLength = controlData)
+
+        guess_overflow = 1070 # 0xfffe3688 on a reference device, which is 1078 empty buffers ((0xfffe3688 - D_BUFFER_START) // BULK_TRANSFER_SIZE)
+        for i in range(guess_overflow):
+            device.usb_write(b"")
+
+        overflow_addr = D_BUFFER_START + (guess_overflow * BULK_TRANSFER_SIZE)
+        payload = struct.pack("<Q", BOOTROM_START) * (BULK_TRANSFER_SIZE // 8)
+        while True:
+            device.usb_write(payload)
+            info(f"Overflowing: {hex(overflow_addr)}")
+
+    # Results in:
+    # [i] Overflowing: 0xfffe2e00 
+
+The result of this code is that the device crashes at overflow address **0xfffe2e00**, meaning we are probably overwriting the stack here.
+
+This overflow can now be visualised as follows:
+
+.. drawio-image:: soc_memory_overflow.drawio
+   :export-scale: 150
+
+github
+******
+As it turns out, someone else has already exploited this vulnerability, this code can be found `on github <https://github.com/Raxone/amlogic-usbdl_s905x3>`_. This is why it is always good to do a thorough research on existing research when starting a new project.
+
+Dumping the bootrom
+*******************
+
+Using the above code and reference code from uboot we can attach the debugger to this device. We need to implement send/receive, however with only a functioning send we can already know that the debugger is living and we first want to dump the bootrom.
+
+One of the *currently* missing functionalities is something to run code on the first boot/setup of the GA, since it assumes peek/poke is already setup. This might be something we will need to change in the future. We can dump the bootrom with the following code:
+
+.. code-block:: c
+
+    void recv_data(void *data, uint32_t len) {
+        //Dump bootrom
+        uint32_t tx = 0;
+        send((void *)0xFFFF0000, 0x10000, &tx);
+    }
+
+U-Boot
+======
+
+To get more insight into some ``BootROM`` functions, we can build ``U-Boot``. This is an opensource and widely used bootloader. 
+A lot of functionalities are copied into the ``BootROM``, meaning that we could try to get some structures and functions from ``U-Boot`` into Ghidra.
+
+To do this we will have to build ``U-Boot`` with symbols, then create a symbol database from ``U-Boot`` into Ghidra and use that database to find and rename functions in the ``BootROM``
+
+Build U-Boot
+************
+
+To build U-Boot you will need: 
+
+    * a gcc-aarch64 compiler (sudo apt install gcc-aarch64-linux-gnu)
+    * bison (sudo apt install bison)
+    * flex (sudo apt install flex)
+
+.. code:: console
+
+    $ git clone https://source.denx.de/u-boot/u-boot.git
+    $ export CROSS_COMPILE=aarch64-linux-gnu-
+    $ export ARCH=arm64
+    $ make sei610_defconfig
+    $ make -j2
+
+Emulation
+=========
+
+.. include:: emulation.rst
+
+Implementing USB
+****************
+
+Debugger Implementation
+=======================
+
+.. include:: debugger_implementation.rst

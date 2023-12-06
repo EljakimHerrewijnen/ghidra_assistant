@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Managment Unit on ARM64 &mdash; Ghidra Assistant 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/drawio.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Ghidra Assistant
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction to the Ghidra Assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../debugger.html">GA debugger</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Emulator:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../emulator/emulator_overview.html">GA Emulator</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Devices:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/Amlogic_S905X3/device_docs/index.html">Amlogic S905X3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/msm8996/device_docs/index.html">MSM8996</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/titan_m2/device_docs/index.html">Titan M2</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ghidra Assistant</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Memory Managment Unit on ARM64</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/architectures/aarch64/aarch64_mmu.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="memory-managment-unit-on-arm64">
+<h1>Memory Managment Unit on ARM64<a class="headerlink" href="#memory-managment-unit-on-arm64" title="Permalink to this heading"></a></h1>
+<p>This part describes the memory managment unit on ARM64 and how it is used by the debugger.</p>
+<section id="single-level-pagetable-at-el3">
+<h2>Single Level Pagetable at EL3<a class="headerlink" href="#single-level-pagetable-at-el3" title="Permalink to this heading"></a></h2>
+<p>The documentation described here can also be found at the <a class="reference external" href="https://developer.arm.com/documentation/102416/0100/Single-level-table-at-EL3">official ARM documentation</a>.</p>
+<section id="translation-regime">
+<h3>Translation Regime<a class="headerlink" href="#translation-regime" title="Permalink to this heading"></a></h3>
+<p>Register <code class="docutils literal notranslate"><span class="pre">TCR_ELx</span></code> is used to control the <strong>Tranlation Regime</strong> for the pagetables. The documentation for the <code class="docutils literal notranslate"><span class="pre">TCR_EL3</span></code> can be found in the <a class="reference external" href="https://developer.arm.com/documentation/ddi0500/d/system-control/aarch64-register-descriptions/translation-control-register--el3">official ARM documentation</a>.</p>
+</section>
+<section id="translation-table">
+<h3>Translation Table<a class="headerlink" href="#translation-table" title="Permalink to this heading"></a></h3>
+<p>The location of the page table is located in register <code class="docutils literal notranslate"><span class="pre">ttbr0_el3</span></code>. Depending of the configuration of <code class="docutils literal notranslate"><span class="pre">TCR_EL3</span></code> the bits for address selection can change.</p>
+<p>More documentation can be found <a class="reference external" href="https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/TTBR0-EL3--Translation-Table-Base-Register-0--EL3-">here</a></p>
+</section>
+<section id="pagetable-entry">
+<h3>Pagetable Entry<a class="headerlink" href="#pagetable-entry" title="Permalink to this heading"></a></h3>
+<p>The following diagram shows the format of a stage 1 level 1 table entry on EL3.</p>
+<img alt="../../_images/singlelevel_el3_pte.png" src="../../_images/singlelevel_el3_pte.png" />
+</section>
+</section>
+<section id="automatic-paging">
+<h2>Automatic Paging<a class="headerlink" href="#automatic-paging" title="Permalink to this heading"></a></h2>
+<p>Automatic paging for page walking will be setup in the debugger.
+For this the <code class="docutils literal notranslate"><span class="pre">ARM64_Concrete_State</span></code> contains a mmu with class <code class="docutils literal notranslate"><span class="pre">ARM64_MMU</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eljakim Herrewijnen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

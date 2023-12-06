@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Titan M2 &mdash; Ghidra Assistant 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/drawio.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="Pixel 3/XL" href="../../pixel3xl_ga_code/device_docs/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Ghidra Assistant
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction to the Ghidra Assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">Setup</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Architectures:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../architectures/aarch64/index.html">ARM64</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architectures/arm_thumb/index.html">ARM Thumb Mode</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Emulator:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../emulator/emulator_overview.html">GA Emulator</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Debugger:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../debugger.html">GA debugger</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Devices:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../Amlogic_S905X3/device_docs/index.html">Amlogic S905X3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../msm8996/device_docs/index.html">MSM8996</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pixel3xl_ga_code/device_docs/index.html">Pixel 3/XL</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Titan M2</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Ghidra Assistant</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Titan M2</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/devices/titan_m2/device_docs/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="titan-m2">
+<h1>Titan M2<a class="headerlink" href="#titan-m2" title="Permalink to this heading"></a></h1>
+<p>Docs about the <code class="docutils literal notranslate"><span class="pre">Titan</span> <span class="pre">M2</span></code> fuzzer and implementation by the NFI.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
+<p>Setup <code class="docutils literal notranslate"><span class="pre">config.py</span></code> file so that we can reuse the code made by <code class="docutils literal notranslate"><span class="pre">Synacktiv</span></code>. Create a file in the <em>source/TitanM2EmulatorNFI</em> called <strong>config.py</strong> and add the following contents:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">GHIDRA_ASSISTANT_PATH</span><span class="o">=</span><span class="s2">&quot;&quot;</span> <span class="c1"># Irrelevant for now</span>
+<span class="n">TITANM2_EMULATOR_PATH</span> <span class="o">=</span> <span class="s2">&quot;/home/eljakim/Work/Opblaaskrokodil/opblaaskrokodil/source/TitanM2Emulator&quot;</span>
+</pre></div>
+</div>
+<p>Follow the instructions in <span class="xref std std-ref">fuzzer_setup_label</span> to build and install all Dependencies.
+Next, setup a python3 virtual environment and install the dependencies:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Setup python3 environment</span>
+<span class="gp">$ </span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv/
+<span class="gp">$ </span><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<span class="gp">$ </span>pip3<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+<p>Install <code class="docutils literal notranslate"><span class="pre">protobuf-compiler</span></code></p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>protobuf-compiler<span class="w"> </span>libstdc++-12-dev
+</pre></div>
+</div>
+<section id="build-clang-17">
+<h3>Build Clang 17<a class="headerlink" href="#build-clang-17" title="Permalink to this heading"></a></h3>
+<p>Build and install <code class="docutils literal notranslate"><span class="pre">Clang</span> <span class="pre">17</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="o">=</span><span class="m">1</span><span class="w"> </span>https://github.com/llvm/llvm-project.git
+<span class="nb">cd</span><span class="w"> </span>llvm-project
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+<span class="c1"># compiler-rt for libclang_rt.fuzzer_no_main.a</span>
+cmake<span class="w"> </span>-DLLVM_ENABLE_PROJECTS<span class="o">=</span><span class="s2">&quot;clang;compiler-rt&quot;</span><span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-G<span class="w"> </span><span class="s2">&quot;Unix Makefiles&quot;</span><span class="w"> </span>../llvm
+make
+</pre></div>
+</div>
+<p>And install <code class="docutils literal notranslate"><span class="pre">Clang17</span></code> system wide:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Copy llvm-project/build/lib/clang/17/lib/x86_64-unknown-linux-gnu/libclang_rt.fuzzer_no_main.a to the <code class="docutils literal notranslate"><span class="pre">fuzzer_proto</span></code> directory.</p>
+</section>
+<section id="libprotobuf-mutator">
+<h3>libprotobuf-mutator<a class="headerlink" href="#libprotobuf-mutator" title="Permalink to this heading"></a></h3>
+<p>Build and install libprotobuf-mutator</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/google/libprotobuf-mutator
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+<span class="c1"># DLIB_PROTO_MUTATOR_TESTING not needed but must faster and it needs internet</span>
+cmake<span class="w"> </span>..<span class="w"> </span>-GNinja<span class="w"> </span>-DLIB_PROTO_MUTATOR_TESTING<span class="o">=</span>OFF<span class="w"> </span>-DCMAKE_POSITION_INDEPENDENT_CODE<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_C_COMPILER<span class="o">=</span>clang<span class="w"> </span>-DCMAKE_CXX_COMPILER<span class="o">=</span>clang++<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug
+ninja
+sudo<span class="w"> </span>ninja<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Next, build and install all other dependencies for unicorn and fuzzing:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Get and build unicorn</span>
+<span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:unicorn-engine/unicorn.git
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>unicorn
+<span class="gp">$ </span>git<span class="w"> </span>checkout<span class="w"> </span>e9c1c17f6df8f8f5da85ee80ad527452db5870ce
+<span class="gp">$ </span>git<span class="w"> </span>apply<span class="w"> </span>../unicorn.patch
+
+<span class="go">Build</span>
+<span class="gp">$ </span><span class="nb">cd</span><span class="w"> </span>bindings/python/
+<span class="gp">$ </span>python3<span class="w"> </span>setup.py<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-emulator">
+<h2>Run Emulator<a class="headerlink" href="#run-emulator" title="Permalink to this heading"></a></h2>
+<p>You can run the emulator by running the <code class="docutils literal notranslate"><span class="pre">GA_emulator</span></code> file:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>python3<span class="w"> </span>GA_emulator.py
+</pre></div>
+</div>
+<section id="update-protobufs">
+<h3>Update Protobufs<a class="headerlink" href="#update-protobufs" title="Permalink to this heading"></a></h3>
+<p>Protobufs <em>should</em> be backwards compatible.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://android.googlesource.com/platform/external/nos/host/generic</span>
+<span class="go">cd generic/generic/nugget/proto</span>
+<span class="go">find ./ -name &quot;*.proto&quot; -exec protoc {} --cpp_out=. --python_out=. \;</span>
+<span class="go">cp -rf nugget ../../../nugget_update</span>
+<span class="go">cd ../../../ &amp;&amp; rm -rf generic/</span>
+</pre></div>
+</div>
+<p>nugget_update now contains the newest commands.</p>
+</section>
+</section>
+<section id="development-notes">
+<h2>Development notes<a class="headerlink" href="#development-notes" title="Permalink to this heading"></a></h2>
+<section id="unicorn-patches">
+<h3>Unicorn Patches<a class="headerlink" href="#unicorn-patches" title="Permalink to this heading"></a></h3>
+<p>More patches were added to <code class="docutils literal notranslate"><span class="pre">Unicorn</span></code> to allow the dumping and restoration of <em>new</em> CSR registers. However, currently it is not possible to save and restore the state of the emulator.</p>
+</section>
+<section id="magisk">
+<h3>Magisk<a class="headerlink" href="#magisk" title="Permalink to this heading"></a></h3>
+<p>Download and extract the latest android studio and set it’s path in the <code class="docutils literal notranslate"><span class="pre">ANDROID_SDK_ROOT</span></code> environment variable.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">export ANDROID_SDK_ROOT=~/android-studio</span>
+<span class="go">git clone https://github.com/topjohnwu/Magisk.git</span>
+<span class="go">cd Magisk/</span>
+<span class="go">git submodule update --init --recursive</span>
+<span class="go">./build.py ndk</span>
+<span class="go">./build.py binary</span>
+</pre></div>
+</div>
+<p>The pixel 6 uses android 13, where the ramdisk is no longer attached to the <em>boot.img</em> file. Instead this is in the init_boot.img file. This file was not included in the .zip files for the pixel 6, so these files were extracted from the pixel 7 .zip files.</p>
+</section>
+</section>
+<section id="fuzzing">
+<h2>Fuzzing<a class="headerlink" href="#fuzzing" title="Permalink to this heading"></a></h2>
+<p>Goal is to add <a class="reference external" href="https://github.com/quarkslab/pastis">Pastis</a> for fuzzing on multiple hosts with multiple fuzzers.</p>
+</section>
+<section id="flash-layout">
+<h2>Flash Layout<a class="headerlink" href="#flash-layout" title="Permalink to this heading"></a></h2>
+<p>Overview of the flash layout:</p>
+<figure class="align-default">
+<img alt="../../../_images/flash_layout.drawio1.svg" class="drawio" src="../../../_images/flash_layout.drawio1.svg" /></figure>
+<section id="storage-calls">
+<h3>Storage calls<a class="headerlink" href="#storage-calls" title="Permalink to this heading"></a></h3>
+<p>Calls reading/writing to storage:</p>
+<section id="syscall-69-readstorage">
+<h4>Syscall_69_ReadStorage<a class="headerlink" href="#syscall-69-readstorage" title="Permalink to this heading"></a></h4>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>void SYSCALL_69_ReadStorage
+            (storage_region *storage_region_ptr,undefined4 slot_id,uint shmem_blk_id_off)
+
+int ecall_69_readstorage(storage_region *region,int slot,uint shmem_id_and_offset)
+
+Incoming References - ecall_69_readstorage
+faceauth_read_extended_storage
+faceauth_read_entry_in_user_storage
+faceauth_read_ec_point_user_storage
+keymaster_init_storage
+nugget_read_storage
+weaver_read_slot
+weaver_write_slot
+</pre></div>
+</div>
+</section>
+</section>
+<section id="user-storage">
+<h3>User storage<a class="headerlink" href="#user-storage" title="Permalink to this heading"></a></h3>
+<figure class="align-default">
+<img alt="../../../_images/user_storage_layout.drawio1.svg" class="drawio" src="../../../_images/user_storage_layout.drawio1.svg" /></figure>
+</section>
+<section id="pers-storage">
+<h3>Pers storage<a class="headerlink" href="#pers-storage" title="Permalink to this heading"></a></h3>
+<figure class="align-default">
+<img alt="../../../_images/pers_storage_layout.drawio1.svg" class="drawio" src="../../../_images/pers_storage_layout.drawio1.svg" /></figure>
+<p>The calls that write to persistence storage are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>avb_save_state</p></td>
+<td><p>Several functions that set the AVB state (unlock, carrier unlock)</p></td>
+</tr>
+<tr class="row-odd"><td><p>AVB8_SetOwnerLock</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>faceauth_write_entry_extension_in_user_storage</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The following code sets the carrier lock state, the hash of the persistent storage is changed when adding the same carrier lock twice.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user_hash_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">pers_hash_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">avb</span><span class="o">.</span><span class="n">carrier_lock</span><span class="p">(</span><span class="n">locked</span><span class="o">=</span><span class="mh">0xff</span><span class="p">,</span> <span class="n">device_data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xaa</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="mh">0x20</span><span class="p">)</span><span class="o">.</span><span class="n">app_status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Could not set carrier lock state!&quot;</span>
+<span class="n">user_hash_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">pers_hash_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">avb</span><span class="o">.</span><span class="n">carrier_lock</span><span class="p">(</span><span class="n">locked</span><span class="o">=</span><span class="mh">0xff</span><span class="p">,</span> <span class="n">device_data</span><span class="o">=</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\xaa</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="mh">0x20</span><span class="p">)</span><span class="o">.</span><span class="n">app_status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Could not set carrier lock state!&quot;</span>
+<span class="n">user_hash_3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">USER_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">pers_hash_3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">storage_png</span><span class="o">.</span><span class="n">get_hash</span><span class="p">(</span><span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">PERS_STORAGE_REG</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="bad-weaver">
+<h2>Bad Weaver<a class="headerlink" href="#bad-weaver" title="Permalink to this heading"></a></h2>
+<p>Docs about when, after running the attack, the exploit fails and the weaver is in a bad state.</p>
+<section id="zero-size">
+<h3>Zero Size:<a class="headerlink" href="#zero-size" title="Permalink to this heading"></a></h3>
+<p>Size of the weaver slot is set to 0. <strong>Confirmed</strong> Weaver slot will still move even when it is empty. Maybe we can overwrite it again?</p>
+<figure class="align-default">
+<img alt="devices/titan_m2/device_docs/weaver_size_0x0.png" src="devices/titan_m2/device_docs/weaver_size_0x0.png" />
+</figure>
+<p>It is not possible to move the corrupted weaver slot due to the size being 0. The weaver is never rewritten to flash. A dump of this state was made and loaded in a new emulator.
+This resulted in the emulator crashing with an actuall system exception.</p>
+</section>
+<section id="massaging">
+<h3>Massaging<a class="headerlink" href="#massaging" title="Permalink to this heading"></a></h3>
+<p>Initial state of a grapheneOS device that was used:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>fastboot<span class="w"> </span>oem<span class="w"> </span>gsc<span class="w"> </span>avb<span class="w"> </span>state
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">GSC AVB state:</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">Version:        : 1</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">Bootloader state: 1</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">Production state: 1</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">Number of locks : 4</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span>        <span class="go">Lock[0]: 0</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span>        <span class="go">Lock[1]: 0</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span>        <span class="go">Lock[2]: 1</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span>        <span class="go">Lock[3]: 1</span>
+<span class="go">OKAY [  0.006s]</span>
+<span class="go">Finished. Total time: 0.006s</span>
+
+<span class="gp">$ </span>fastboot<span class="w"> </span>oem<span class="w"> </span>gsc<span class="w"> </span>avb<span class="w"> </span>rb<span class="w"> </span><span class="m">0</span>
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">1651708800</span>
+<span class="go">OKAY [  0.035s]</span>
+<span class="go">Finished. Total time: 0.036s</span>
+
+<span class="gp">$ </span>fastboot<span class="w"> </span>oem<span class="w"> </span>gsc<span class="w"> </span>uart-passthru
+<span class="gp gp-VirtualEnv">(bootloader)</span> <span class="go">0</span>
+<span class="go">OKAY [  0.035s]</span>
+<span class="go">Finished. Total time: 0.035s</span>
+</pre></div>
+</div>
+<p>Invalid owner key:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>StorageDebug | INFO | Dumping storage pers
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |      Page 0 #321      |      Page 1 #320      |     *Page 2 #322      |      Page 3 #218      | Page 4 #5 0x0017d000  | Page 5 #6 0x0017d800  | Page 6 #7 0x0017e000  | Page 7 #8 0x0017e800  |
+     |   0x0017b000 st:(7)   |   0x0017b800 st:(4)   |   0x0017c000 st:(7)   |   0x0017c800 st:(7)   |        st:(7)         |        st:(7)         |        st:(7)         |        st:(7)         |
+     |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |  (bad_status=False)   |
+     |     hole:8 free:2     |    hole:255 free:0    |    hole:0 free:231    |   hole:173 free:79    |    hole:252 free:3    |    hole:252 free:3    |    hole:252 free:3    |    hole:255 free:0    |
+     +=======================+=======================+=======================+=======================+=======================+=======================+=======================+=======================+
+     |   0x008: AVB[32] ()   |                       |  0x008: WEAVER[57] () |   0x008: AVB[33] ()   |                       |                       |                       |                       |
+     |     0x41 fl:4 -&gt;      |                       |     0x14 fl:2 -&gt;      |     0x10 fl:2 -&gt;      |                       |                       |                       |                       |
+     |   01c1ce31f128e8c8    |                       |   03000000ffffffff    |   4242424242424242    |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x028: WEAVER[58] () |                       |                       |                       |                       |                       |
+     |                       |                       |     0x14 fl:2 -&gt;      |                       |                       |                       |                       |                       |
+     |                       |                       |   03000000ffffffff    |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x048: WEAVER[59] () |                       |                       |                       |                       |                       |
+     |                       |                       |     0x14 fl:2 -&gt;      |                       |                       |                       |                       |                       |
+     |                       |                       |   03000000ffffffff    |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |   0x058: AVB[16] ()   |                       |                       |                       |                       |                       |                       |                       |
+     |      0x0 fl:0 -&gt;      |                       |                       |                       |                       |                       |                       |                       |
+     |   ffffffffffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  badbadbad! address:  |                       |                       |                       |                       |                       |                       |                       |
+     |   0x0017b068 0x068:   |                       |  0x068: WEAVER[60] () |                       |                       |                       |                       |                       |
+     |  WEAVER[1] () 0xfff   |                       |     0x14 fl:2 -&gt;      |                       |                       |                       |                       |                       |
+     |       fl:15 -&gt;        |                       |   03000000ffffffff    |                       |                       |                       |                       |                       |
+     |   c000660a1404c0b4    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x070: FACEAUTH[10]  |                       |                       |                       |                       |                       |                       |                       |
+     |    () 0x41 fl:4 -&gt;    |                       |                       |                       |                       |                       |                       |                       |
+     |   01c1ce31f128e8c8    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x088: WEAVER[61] () |                       |                       |                       |                       |                       |
+     |                       |                       |     0x14 fl:2 -&gt;      |                       |                       |                       |                       |                       |
+     |                       |                       |   03000000ffffffff    |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x0a8: WEAVER[62] () |                       |                       |                       |                       |                       |
+     |                       |                       |     0x14 fl:2 -&gt;      |                       |                       |                       |                       |                       |
+     |                       |                       |   03000000ffffffff    |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x0c0: WEAVER[8] ()  |                       |                       |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |                       |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x0d0: Inside free   |                       |                       |                       |                       |                       |
+     |                       |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x0e0: WEAVER[30] () |                       |  0x0e0: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  badbadbad! address:  |                       |                       |                       |                       |                       |                       |                       |
+     |   0x0017b100 0x100:   |                       |  0x100: Inside free   |                       |                       |                       |                       |                       |
+     |  WEAVER[63] () 0xfff  |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |       fl:15 -&gt;        |                       |                       |                       |                       |                       |                       |                       |
+     |   c000772c4401c1e9    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x108: WEAVER[44] () |                       |  0x108: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x128: WEAVER[15] () |                       |  0x128: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x148: WEAVER[3] ()  |                       |  0x148: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x168: WEAVER[28] () |                       |  0x168: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x188: WEAVER[34] () |                       |  0x188: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x1a8: WEAVER[48] () |                       |  0x1a8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x1c8: WEAVER[11] () |                       |  0x1c8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x1e8: WEAVER[47] () |                       |  0x1e8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x208: WEAVER[14] () |                       |  0x208: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x228: WEAVER[36] () |                       |  0x228: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x250: WEAVER[23] () |                       |  0x250: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x270: WEAVER[46] () |                       |  0x270: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x290: WEAVER[50] () |                       |  0x290: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x2b0: WEAVER[51] () |                       |  0x2b0: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x2d0: WEAVER[26] () |                       |  0x2d0: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x2f0: WEAVER[33] () |                       |  0x2f0: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x310: WEAVER[10] () |                       |  0x310: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x330: WEAVER[52] () |                       |  0x330: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x350: WEAVER[53] () |                       |  0x350: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:3 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x370: WEAVER[55] () |                       |  0x370: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:3 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x398: WEAVER[37] () |                       |  0x398: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x3b8: WEAVER[45] () |                       |  0x3b8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  badbadbad! address:  |                       |                       |                       |                       |                       |                       |                       |
+     |   0x0017b3d8 0x3d8:   |                       |  0x3d8: Inside free   |                       |                       |                       |                       |                       |
+     |  WEAVER[0] () 0xfff   |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |       fl:15 -&gt;        |                       |                       |                       |                       |                       |                       |                       |
+     |   00000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x3e8: WEAVER[12] () |                       |  0x3e8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x408: WEAVER[39] () |                       |  0x408: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x428: WEAVER[40] () |                       |  0x428: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x448: WEAVER[54] () |                       |  0x448: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:3 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x468: WEAVER[24] () |                       |  0x468: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x488: WEAVER[20] () |                       |  0x488: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x4a8: WEAVER[6] ()  |                       |  0x4a8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x4c8: WEAVER[42] () |                       |  0x4c8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x4e8: WEAVER[21] () |                       |  0x4e8: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x508: WEAVER[5] ()  |                       |  0x508: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x528: WEAVER[49] () |                       |  0x528: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x548: WEAVER[41] () |                       |  0x548: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x570: WEAVER[22] () |                       |  0x570: Inside free   |                       |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |                       |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x590: WEAVER[31] () |                       |  0x590: Inside free   |  0x590: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x5b0: WEAVER[17] () |                       |  0x5b0: Inside free   |  0x5b0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x5d0: WEAVER[9] ()  |                       |  0x5d0: Inside free   |  0x5d0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x5f0: WEAVER[16] () |                       |  0x5f0: Inside free   |  0x5f0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x610: WEAVER[18] () |                       |  0x610: Inside free   |  0x610: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x630: WEAVER[43] () |                       |  0x630: Inside free   |  0x630: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x650: WEAVER[19] () |                       |  0x650: Inside free   |  0x650: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x670: WEAVER[4] ()  |                       |  0x670: Inside free   |  0x670: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x6b0: WEAVER[32] () |                       |  0x6b0: Inside free   |  0x6b0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x6d0: WEAVER[35] () |                       |  0x6d0: Inside free   |  0x6d0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x6f0: WEAVER[2] ()  |                       |  0x6f0: Inside free   |  0x6f0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x710: WEAVER[7] ()  |                       |  0x710: Inside free   |  0x710: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x730: WEAVER[13] () |                       |  0x730: Inside free   |  0x730: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x750: WEAVER[25] () |                       |  0x750: Inside free   |  0x750: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x770: WEAVER[27] () |                       |  0x770: Inside free   |  0x770: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x790: WEAVER[29] () |                       |  0x790: Inside free   |  0x790: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x7b0: WEAVER[38] () |                       |  0x7b0: Inside free   |  0x7b0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:4 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x7d0: WEAVER[56] () |                       |  0x7d0: Inside free   |  0x7d0: Inside free   |                       |                       |                       |                       |
+     |     0x14 fl:2 -&gt;      |                       |     area of 0x738     |     area of 0x278     |                       |                       |                       |                       |
+     |   03000000ffffffff    |                       |                       |                       |                       |                       |                       |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |                       |                       |  0x7f0: Inside free   |  0x7f0: Inside free   |  0x7f0: Inside free   |  0x7f0: Inside free   |  0x7f0: Inside free   |                       |
+     |                       |                       |     area of 0x738     |     area of 0x278     |     area of 0x18      |     area of 0x18      |     area of 0x18      |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+     |  0x7f8: Inside free   |                       |  0x7f8: Inside free   |  0x7f8: Inside free   |  0x7f8: Inside free   |  0x7f8: Inside free   |  0x7f8: Inside free   |                       |
+     |     area of 0x10      |                       |     area of 0x738     |     area of 0x278     |     area of 0x18      |     area of 0x18      |     area of 0x18      |                       |
+     +-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+                ┌─────────────────────────────────────────────────┬──────────────────┐
+     0x00000000 │ 01 c1 ce 31 f1 28 e8 c8 fa ca 20 88 69 d2 37 92 │ ...1.(.... .i.7. │
+     0x00000010 │ 4d f1 a0 ae c6 0a 35 86 e0 60 31 4c 09 68 e6 59 │ M.....5..`1L.h.Y │
+     0x00000020 │ b0 48 5d de fc b1 6d e4 69 9a 99 e3 df 23 2c 77 │ .H]...m.i....#,w │
+     0x00000030 │ 2f 3d 16 c4 cc 97 1f b6 d8 fc 68 2e 45 f2 99 32 │ /=........h.E..2 │
+     0x00000040 │ d9 42 42 42 42 42 42 42 42 42 42 42 42 42 42 42 │ .BBBBBBBBBBBBBBB │
+     0x00000050 │ 42 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff │ B............... │
+     0x00000060 │ ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff │ ................ │
+              * ┆ ⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩ ┆ ⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩⇩ ┆
+     0x000001f0 │ ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff │ ................ │
+                └─────────────────────────────────────────────────┴──────────────────┘
+</pre></div>
+</div>
+<p>It is possible to leak data using the owner key from avb. Not sure why. But managed to leak both an EC point as well as a (partial) weaver hash.</p>
+</section>
+</section>
+<section id="emulator-notes">
+<h2>Emulator Notes<a class="headerlink" href="#emulator-notes" title="Permalink to this heading"></a></h2>
+<p>Booting the firmware.</p>
+<p>The crypto task is skipped for now.</p>
+<section id="tasks">
+<h3>Tasks<a class="headerlink" href="#tasks" title="Permalink to this heading"></a></h3>
+<p>Task_Array is located at <code class="docutils literal notranslate"><span class="pre">0x00012210</span></code>, there are 9 tasks. Each value in the array has a task structure with length: <em>0xe8</em>. Tasks are initialized by the <code class="docutils literal notranslate"><span class="pre">tasks_init</span></code> function.</p>
+</section>
+<section id="shmem">
+<h3>Shmem<a class="headerlink" href="#shmem" title="Permalink to this heading"></a></h3>
+<p>Layout of the Shmem blocks</p>
+</section>
+<section id="memory-map">
+<h3>Memory map<a class="headerlink" href="#memory-map" title="Permalink to this heading"></a></h3>
+<p>The memory map for the Titan M2</p>
+<figure class="align-default">
+<img alt="../../../_images/memory_map.drawio2.svg" class="drawio" src="../../../_images/memory_map.drawio2.svg" /></figure>
+</section>
+</section>
+<section id="devices">
+<h2>Devices<a class="headerlink" href="#devices" title="Permalink to this heading"></a></h2>
+<p>Devices are emulated by creating a class for each device, which is based on the <code class="docutils literal notranslate"><span class="pre">GSCDevice</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GSCDevice</span><span class="p">:</span>
+
+    <span class="n">BASE</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">SIZE</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gsc</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gsc</span> <span class="o">=</span> <span class="n">gsc</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;must be implemented&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;must be implemented&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, a hook is added when reading/writing from the device memory range.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">hook_device_access</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handle</span><span class="p">,</span> <span class="n">access</span><span class="p">,</span> <span class="n">address</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">user_data</span><span class="p">):</span>
+    <span class="p">[</span><span class="o">..</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The devices are emulated by hooking writes to the MMIO regions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_MEM_READ</span><span class="o">|</span><span class="n">UC_HOOK_MEM_WRITE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook_device_access</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mh">0x40000000</span><span class="p">,</span> <span class="mh">0x41000000</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="n">hook_add</span><span class="p">(</span><span class="n">UC_HOOK_MEM_READ</span><span class="o">|</span><span class="n">UC_HOOK_MEM_WRITE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hook_device_access</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mh">0xe0000000</span><span class="p">,</span> <span class="mh">0xe1000000</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>These requests are then forwarded to the device to handle them.</p>
+<section id="spi-device">
+<h3>SPI Device<a class="headerlink" href="#spi-device" title="Permalink to this heading"></a></h3>
+<p>Implementation of the SPI Device:</p>
+<p>start: <code class="docutils literal notranslate"><span class="pre">0x40620000</span></code></p>
+<figure class="align-default">
+<img alt="../../../_images/spi_device.drawio1.svg" class="drawio" src="../../../_images/spi_device.drawio1.svg" /></figure>
+<p>The handling of the SPI data and setup is done in software, some <em>events</em> are simulated to create a valid execution state.</p>
+<p>Support for generating an interrupt is added as part of the SPI device.
+The SPI device generates an interrupt when data is received.
+This interrupt is generated by:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Interrupt in NVIC device is generated, the interrupt number is set here. <a class="reference external" href="https://developer.arm.com/documentation/ddi0337/h/nested-vectored-interrupt-controller/about-the-nvic">NVIC is (probably) based on the ARM Cortex M3 Interrupt handling.</a></p></li>
+<li><p>Execution is transfered to the Interrupt code in the firmware.</p></li>
+</ol>
+</div></blockquote>
+<p>If there are any flags, the spi_status of the class is updated with a hardcoded value, which is later passed on to the MMIO Status registers.</p>
+<p>Next, the <code class="docutils literal notranslate"><span class="pre">STATUS</span></code>, <code class="docutils literal notranslate"><span class="pre">STATUS_MASK</span></code>, <code class="docutils literal notranslate"><span class="pre">CMD</span></code>, <code class="docutils literal notranslate"><span class="pre">RX_SIZE</span></code> and data is written to the regions in MMIO.</p>
+<p>When execution is continued it will start at the interrupt handler.</p>
+</section>
+<section id="nos-calls">
+<h3>NOS Calls<a class="headerlink" href="#nos-calls" title="Permalink to this heading"></a></h3>
+<p>When injecting a NOS call, an interupt is generated by the SPI device.</p>
+<p>First, the previously generated data is fetched from the <code class="docutils literal notranslate"><span class="pre">SPI_RX_Buffer</span></code>, next the command and data is transfered to the SPI device, which injects an interrupt and simulates the data flow.</p>
+</section>
+<section id="uart">
+<h3>UART<a class="headerlink" href="#uart" title="Permalink to this heading"></a></h3>
+<p>start: <code class="docutils literal notranslate"><span class="pre">0x404d0000</span></code></p>
+</section>
+</section>
+<section id="found-bugs">
+<h2>Found Bugs<a class="headerlink" href="#found-bugs" title="Permalink to this heading"></a></h2>
+<p>Overview of found bugs and CVEs</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Note</p></th>
+<th class="head"><p>Risk</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td></td>
+<td><p>CVE-2023-21399 <code class="docutils literal notranslate"><span class="pre">EoP</span></code></p></td>
+<td><p>High</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>CVE-2023-21041 <code class="docutils literal notranslate"><span class="pre">OOBW</span> <span class="pre">EoP</span></code></p></td>
+<td><p>High</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CVE-2021-39683 <code class="docutils literal notranslate"><span class="pre">EoP</span></code></p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>CVE-2021-39680 <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CVE-2021-39727 <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>CVE-2021-1047 <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>CVE-2021-39643 <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<section id="cve-2023-21399">
+<h3>CVE-2023-21399<a class="headerlink" href="#cve-2023-21399" title="Permalink to this heading"></a></h3>
+<p>Security bulletin update for <a class="reference external" href="https://source.android.com/docs/security/bulletin/pixel/2023-07-01">July</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The update for this firmware looks confusing. When extracting the <code class="docutils literal notranslate"><span class="pre">evt.ec.bin</span></code> the nugget string is: <em>2023-04-24_TitanM2_c277e001_nugget_v0.0.ab10000435-6cba04a-r</em>, which seems to be older than <em>2023-06-05_TitanM2_170d1863_nugget_v0.0.ab9702664-1568cbd-r</em></p>
+</div>
+</section>
+<section id="cve-2023-21041">
+<h3>CVE-2023-21041<a class="headerlink" href="#cve-2023-21041" title="Permalink to this heading"></a></h3>
+</section>
+</section>
+<section id="keyring">
+<h2>Keyring<a class="headerlink" href="#keyring" title="Permalink to this heading"></a></h2>
+<p>Search for the kernel keyring</p>
+<section id="fscryptctl">
+<h3>fscryptctl<a class="headerlink" href="#fscryptctl" title="Permalink to this heading"></a></h3>
+<p>To build for ARM64</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CC</span><span class="o">=</span><span class="nv">$TOOLCHAINENV</span>/android-ndk-r21_Linux/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi29-clang++<span class="w"> </span>make
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bluejay:/data/local/tmp<span class="w"> </span><span class="c1"># ./fscryptctl_arm64.elf get_policy /data/data</span>
+Encryption<span class="w"> </span>policy<span class="w"> </span><span class="k">for</span><span class="w"> </span>/data/data:
+<span class="w">        </span>Policy<span class="w"> </span>version:<span class="w"> </span><span class="m">2</span>
+<span class="w">        </span>Master<span class="w"> </span>key<span class="w"> </span>identifier:<span class="w"> </span>056dbf8d2e9936b9b2f7462fda761a23
+<span class="w">        </span>Contents<span class="w"> </span>encryption<span class="w"> </span>mode:<span class="w"> </span>AES-256-XTS
+<span class="w">        </span>Filenames<span class="w"> </span>encryption<span class="w"> </span>mode:<span class="w"> </span>AES-256-CTS
+<span class="w">        </span>Flags:<span class="w"> </span>PAD_32,<span class="w"> </span>IV_INO_LBLK_64
+</pre></div>
+</div>
+<p>generate dummy key</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;/tmp/nfiekey&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+<span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;nfie&quot;</span> <span class="o">*</span> <span class="mi">16</span><span class="p">)</span> <span class="c1">#512 bit key</span>
+<span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Copy fscryptctl and key to /data/local/tmp and on the device inject the key:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>su
+<span class="go">|bluejay:/data/local/tmp # ./fscryptctl_arm64.elf add_key /data &lt; /data/local/tmp/nfiekey</span>
+<span class="go">66860a370fb962544598cf352600fe0d</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="titan-versions">
+<h2>Titan Versions<a class="headerlink" href="#titan-versions" title="Permalink to this heading"></a></h2>
+<section id="titanm2-5acd630a-nugget-v0-0-ab7652006-cd9a5c7">
+<h3>TitanM2_5acd630a_nugget_v0.0.ab7652006-cd9a5c7<a class="headerlink" href="#titanm2-5acd630a-nugget-v0-0-ab7652006-cd9a5c7" title="Permalink to this heading"></a></h3>
+<p>A memset() was added in app_nugget in block 0x000c56d8.</p>
+</section>
+<section id="storage-bug">
+<h3>Storage Bug<a class="headerlink" href="#storage-bug" title="Permalink to this heading"></a></h3>
+<p>NOS production: error</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Device</p></th>
+<th class="head"><p>Comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Pixel Fold</p></td>
+<td><p><a class="reference external" href="https://support.google.com/pixelphone/thread/236137476/pixel-fold-h%C3%A4ngt-im-fastboot-mode-egal-was-ich-mache-es-hilft-nichts?hl=de">Citadel nugget_v0.0.ab10000435-6cba04a-r</a></p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="questions">
+<h3>Questions<a class="headerlink" href="#questions" title="Permalink to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>How to determine stack size in Ghidra.</p></li>
+<li><p>How was the content of the flash storage figured out.</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../pixel3xl_ga_code/device_docs/index.html" class="btn btn-neutral float-left" title="Pixel 3/XL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eljakim Herrewijnen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

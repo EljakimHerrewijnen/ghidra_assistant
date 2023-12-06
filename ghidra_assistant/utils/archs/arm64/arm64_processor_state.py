@@ -1,6 +1,6 @@
 from ...utils import *
-from .misc.sctlr_el3 import SCTLR_EL3 as R_SCTLR_EL3 
-from .misc.sctlr_el1 import SCTLR_EL1 as R_SCTLR_EL1 
+from .misc.sctlr_el3 import SCTLR_EL3 as R_SCTLR_EL3
+from .misc.sctlr_el1 import SCTLR_EL1 as R_SCTLR_EL1
 from .misc.current_el import CURRENT_EL as R_CURRENT_EL
 from .misc.MMU.pagetable_arm64 import PagetableARM64_el3
 from .misc.MMU.arm64_mmu import ARM64_MMU
@@ -73,7 +73,7 @@ CURRENT_EL      = 56
 
 # Debugger registers
 DBG_SETUP_JUMP = 504
-DBG_SETUP_JUMP_ADDRESS = 505 
+DBG_SETUP_JUMP_ADDRESS = 505
 DBG_MMU_INTERACT    = 506
 DBG_JUMP_TO         = 507
 DBG_CONT_EXEC       = 508
@@ -104,13 +104,30 @@ class ARM64_Concrete_State:
         if self.auto_sync_special:
             self.debugger.sync_special_regs()
 
+    def get_ctx(self):
+        state  = f"""
+            PC: 0x????????\tRA: 0x{self.LR:08x}\tSP: 0x{self.SP:08x}\tGP: 0x????????
+            X0: 0x{self.X0:08x}\tX1: 0x{self.X1:08x}\tX2: 0x{self.X2:08x}\tX3:0x{self.X3:08x}\t
+            X4: 0x{self.X4:08x}\tX5: 0x{self.X5:08x}\tX6: 0x{self.X6:08x}\tX7: 0x{self.X7:08x}\t
+            X8: 0x{self.X8:08x}\tX9: 0x{self.X9:08x}\tX10: 0x{self.X10:08x}\tX11: 0x{self.X11:08x}\t
+            X12: 0x{self.X12:08x}\tX13: 0x{self.X13:08x}\tX14:0x{self.X14:08x}\tX15: 0x{self.X15:08x}\t
+            X16: 0x{self.X16:08x}\tX17: 0x{self.X17:08x}\tX18: 0x{self.X18:08x}\tX19: 0x{self.X19:08x}\t
+            X20: 0x{self.X20:08x}\tX21: 0x{self.X21:08x}\tX22: 0x{self.X22:08x}\tX23: 0x{self.X23:08x}\t
+            X24: 0x{self.X24:08x}\tX25: 0x{self.X25:08x}\tX26: 0x{self.X26:08x}\tX27: 0x{self.X27:08x}\t
+            X28: 0x{self.X28:08x}\tX29: 0x{self.X29:08x}\tX30: 0x{self.X30:08x}
+        """
+        return state
+
+    def print_ctx(self):
+        p_info(self.get_ctx())
+
     def read_config(self, config):
         return struct.unpack("<Q", self.debugger.memdump_region(self.config_addr(config), 8))[0]
-    
+
     @property
     def DEBUGGER_JUMP(self):
         return self.read_config(JUMP_ADDR)
-    
+
     @DEBUGGER_JUMP.setter
     def DEBUGGER_JUMP(self, value : bytes):
         self.write_config(JUMP_ADDR, value, True)
@@ -118,7 +135,7 @@ class ARM64_Concrete_State:
     @property
     def EXCEPTION_ID(self):
         return self.read_config(EXCEPTION_ID)
-    
+
     @EXCEPTION_ID.setter
     def EXCEPTION_ID(self, value : bytes):
         self.write_config(EXCEPTION_ID, value, True)
@@ -126,7 +143,7 @@ class ARM64_Concrete_State:
     @property
     def DBG_CONT_EXEC(self):
         return self.read_config(DBG_CONT_EXEC)
-    
+
     @DBG_CONT_EXEC.setter
     def DBG_CONT_EXEC(self, value : int):
         self.write_config(DBG_CONT_EXEC, value, True)
@@ -134,7 +151,7 @@ class ARM64_Concrete_State:
     @property
     def DBG_JUMP_TO(self):
         return self.read_config(DBG_JUMP_TO)
-    
+
     @DBG_JUMP_TO.setter
     def DBG_JUMP_TO(self, value : int):
         self.write_config(DBG_JUMP_TO, value, True)
@@ -142,7 +159,7 @@ class ARM64_Concrete_State:
     @property
     def DBG_MMU_INTERACT(self):
         return self.read_config(DBG_MMU_INTERACT)
-    
+
     @DBG_MMU_INTERACT.setter
     def DBG_MMU_INTERACT(self, value : int):
         self.write_config(DBG_MMU_INTERACT, value, True)
@@ -150,7 +167,7 @@ class ARM64_Concrete_State:
     @property
     def DBG_SETUP_JUMP(self):
         return self.read_config(DBG_SETUP_JUMP)
-    
+
     @DBG_SETUP_JUMP.setter
     def DBG_SETUP_JUMP(self, value : int):
         self.write_config(DBG_SETUP_JUMP, value, True)
@@ -158,16 +175,16 @@ class ARM64_Concrete_State:
     @property
     def DBG_SETUP_JUMP_ADDRESS(self):
         return self.read_config(DBG_SETUP_JUMP_ADDRESS)
-    
+
     @DBG_SETUP_JUMP_ADDRESS.setter
     def DBG_SETUP_JUMP_ADDRESS(self, value : int):
         self.write_config(DBG_SETUP_JUMP_ADDRESS, value, True)
 
-    # ================ VBAR ================ 
+    # ================ VBAR ================
     @property
     def VBAR_EL3(self):
         return self.read_config(VBAR_EL3)
-    
+
     @VBAR_EL3.setter
     def VBAR_EL3(self, value : bytes):
         self.write_config(VBAR_EL3, value)
@@ -175,59 +192,59 @@ class ARM64_Concrete_State:
     @property
     def VBAR_EL2(self):
         return self.read_config(VBAR_EL2)
-    
+
     @VBAR_EL2.setter
     def VBAR_EL2(self, value : bytes):
         self.write_config(VBAR_EL2, value)
-    
+
     @property
     def VBAR_EL1(self):
         return self.read_config(VBAR_EL1)
-    
+
     @VBAR_EL1.setter
     def VBAR_EL1(self, value : bytes):
         self.write_config(VBAR_EL1, value)
-    # ================ VBAR ================ 
-        
-    # ================ TTBR0_EL ================ 
+    # ================ VBAR ================
+
+    # ================ TTBR0_EL ================
     @property
     def TTBR0_EL3(self):
         return self.read_config(TTBR0_EL3)
-    
+
     @TTBR0_EL3.setter
     def TTBR0_EL3(self, value : bytes):
         self.write_config(TTBR0_EL3, value)
-    
+
     @property
     def TTBR0_EL2(self):
         return self.read_config(TTBR0_EL2)
-    
+
     @TTBR0_EL2.setter
     def TTBR0_EL2(self, value : bytes):
         self.write_config(TTBR0_EL2, value)
-    
+
     @property
     def TTBR0_EL1(self):
         return self.read_config(TTBR0_EL1)
-    
+
     @TTBR0_EL1.setter
     def TTBR0_EL1(self, value : bytes):
         self.write_config(TTBR0_EL1, value)
-    # ================ TTBR0_EL ================ 
-    
-    # ================ SCTLR_EL ================ 
+    # ================ TTBR0_EL ================
+
+    # ================ SCTLR_EL ================
     @property
-    def SCTLR_EL3(self): 
+    def SCTLR_EL3(self):
         return self.read_config(SCTLR_EL3)
-    
+
     @SCTLR_EL3.setter
     def SCTLR_EL3(self, value : bytes):
-        self.write_config(SCTLR_EL3, value)  
+        self.write_config(SCTLR_EL3, value)
 
     @property
     def R_SCTLR_EL3(self):
         return R_SCTLR_EL3(self.SCTLR_EL3)
-    
+
     @R_SCTLR_EL3.setter
     def R_SCTLR_EL3(self, value : int):
         #TODO make bits in control register r/w
@@ -236,52 +253,52 @@ class ARM64_Concrete_State:
     @property
     def SCTLR_EL2(self):
         return self.read_config(SCTLR_EL2)
-    
+
     @SCTLR_EL2.setter
     def SCTLR_EL2(self, value : bytes):
-        self.write_config(SCTLR_EL2, value)  
+        self.write_config(SCTLR_EL2, value)
 
     @property
     def SCTLR_EL1(self):
         return self.read_config(SCTLR_EL1)
-    
+
     @SCTLR_EL1.setter
     def SCTLR_EL1(self, value : bytes):
-        self.write_config(SCTLR_EL1, value)  
+        self.write_config(SCTLR_EL1, value)
 
     @property
     def R_SCTLR_EL1(self):
         return R_SCTLR_EL1(self.SCTLR_EL1)
-    
+
     @R_SCTLR_EL1.setter
     def R_SCTLR_EL1(self, value : int):
         #TODO make bits in control register r/w
         self.SCTLR_EL1 = struct.pack("<Q", value)
-    # ================ SCTLR_EL ================ 
+    # ================ SCTLR_EL ================
 
-    
+
     @property
     def R_CURRENT_EL(self):
         return R_CURRENT_EL(self.CURRENT_EL)
-    
+
     @R_CURRENT_EL.setter
     def R_CURRENT_EL(self, value : int):
         # TODO write bits to set current EL
         return NotImplemented
-        
-    # ================ TCR_EL ================ 
+
+    # ================ TCR_EL ================
     @property
-    def TCR_EL3(self): 
+    def TCR_EL3(self):
         return self.read_config(TCR_EL3)
-    
+
     @TCR_EL3.setter
     def TCR_EL3(self, value : bytes):
-        self.write_config(TCR_EL3, value)  
+        self.write_config(TCR_EL3, value)
 
     @property
     def R_TCR_EL3(self):
         return R_TCR_EL3(self.TCR_EL3)
-    
+
     @R_TCR_EL3.setter
     def R_TCR_EL3(self, value : int):
         self.TCR_EL3 = struct.pack("<Q", value)
@@ -289,26 +306,26 @@ class ARM64_Concrete_State:
     @property
     def TCR_EL2(self):
         return self.read_config(TCR_EL2)
-    
+
     @TCR_EL2.setter
     def TCR_EL2(self, value : bytes):
-        self.write_config(TCR_EL2, value)  
+        self.write_config(TCR_EL2, value)
 
     @property
     def TCR_EL1(self):
         return self.read_config(TCR_EL1)
-    
+
     @TCR_EL1.setter
     def TCR_EL1(self, value : bytes):
-        self.write_config(TCR_EL1, value)  
-        
-    # ================ TCR_EL ================ 
-        
-    # ================ ELR_EL ================ 
+        self.write_config(TCR_EL1, value)
+
+    # ================ TCR_EL ================
+
+    # ================ ELR_EL ================
     @property
     def ELR_EL3(self):
         return self.read_config(ELR_EL3)
-    
+
     @ELR_EL3.setter
     def ELR_EL3(self, value : bytes):
         self.write_config(ELR_EL3, value)
@@ -316,7 +333,7 @@ class ARM64_Concrete_State:
     @property
     def ELR_EL2(self):
         return self.read_config(ELR_EL2)
-    
+
     @ELR_EL2.setter
     def ELR_EL2(self, value : bytes):
         self.write_config(ELR_EL2, value)
@@ -324,19 +341,19 @@ class ARM64_Concrete_State:
     @property
     def ELR_EL1(self):
         return self.read_config(ELR_EL1)
-    
+
     @ELR_EL1.setter
     def ELR_EL1(self, value : bytes):
         self.write_config(ELR_EL1, value)
-        
-    # ================ ELR_EL ================ 
 
-    # ================ MAIR_EL ================ 
+    # ================ ELR_EL ================
+
+    # ================ MAIR_EL ================
 
     @property
     def MAIR_EL3(self):
         return self.read_config(MAIR_EL3)
-    
+
     @MAIR_EL3.setter
     def MAIR_EL3(self, value : bytes):
         self.write_config(MAIR_EL3, value)
@@ -344,7 +361,7 @@ class ARM64_Concrete_State:
     @property
     def R_MAIR_EL3(self):
         return R_MAIR_EL3(self.MAIR_EL3)
-    
+
     @R_MAIR_EL3.setter
     def R_MAIR_EL3(self, value : int):
         self.MAIR_EL3 = struct.pack("<Q", value)
@@ -352,7 +369,7 @@ class ARM64_Concrete_State:
     @property
     def MAIR_EL2(self):
         return self.read_config(MAIR_EL2)
-    
+
     @MAIR_EL2.setter
     def MAIR_EL2(self, value : bytes):
         self.write_config(MAIR_EL2, value)
@@ -360,35 +377,35 @@ class ARM64_Concrete_State:
     @property
     def MAIR_EL1(self):
         return self.read_config(MAIR_EL1)
-    
+
     @MAIR_EL1.setter
     def MAIR_EL1(self, value : bytes):
         self.write_config(MAIR_EL1, value)
 
-    # ================ MAIR_EL ================ 
+    # ================ MAIR_EL ================
 
     @property
     def CURRENT_EL(self):
         return self.read_config(CURRENT_EL)
-    
+
     @CURRENT_EL.setter
     def CURRENT_EL(self, value : bytes):
         warn("CurrentEL does nothing currently, not synced in debugger")
         self.write_config(CURRENT_EL, value)
-    
+
     @property
     def LR(self):
         return self.read_config(X30)
-    
+
     @LR.setter
     def LR(self, value : bytes):
         self.write_config(X30, value)
-    
+
     # SP also register X31
     @property
     def SP(self):
         return self.read_config(SP)
-    
+
     @SP.setter
     def SP(self, value : bytes):
         self.write_config(SP, value)
@@ -396,10 +413,10 @@ class ARM64_Concrete_State:
     def print_ctx(self):
         info(
             f"""
-            X0 : {hex(self.X0)} | X1 : {hex(self.X1)} | X2 : {hex(self.X2)} | X3 : {hex(self.X3)} | X4 : {hex(self.X4)} | X5 : {hex(self.X5)} | X6 : {hex(self.X6)} | 
-            X7 : {hex(self.X7)} | X8 : {hex(self.X8)} | X9 : {hex(self.X9)} | X10 : {hex(self.X10)} | X11 : {hex(self.X11)} | X12 : {hex(self.X12)} | X13 : {hex(self.X13)} | 
-            X14 : {hex(self.X14)} | X15 : {hex(self.X15)} | X16 : {hex(self.X16)} | X17 : {hex(self.X17)} | X18 : {hex(self.X18)} | X19 : {hex(self.X19)} | X20 : {hex(self.X20)} | 
-            X21 : {hex(self.X21)} | X22 : {hex(self.X22)} | X23 : {hex(self.X23)} | X24 : {hex(self.X24)} | X25 : {hex(self.X25)} | X26 : {hex(self.X26)} | X27 : {hex(self.X27)} | 
+            X0 : {hex(self.X0)} | X1 : {hex(self.X1)} | X2 : {hex(self.X2)} | X3 : {hex(self.X3)} | X4 : {hex(self.X4)} | X5 : {hex(self.X5)} | X6 : {hex(self.X6)} |
+            X7 : {hex(self.X7)} | X8 : {hex(self.X8)} | X9 : {hex(self.X9)} | X10 : {hex(self.X10)} | X11 : {hex(self.X11)} | X12 : {hex(self.X12)} | X13 : {hex(self.X13)} |
+            X14 : {hex(self.X14)} | X15 : {hex(self.X15)} | X16 : {hex(self.X16)} | X17 : {hex(self.X17)} | X18 : {hex(self.X18)} | X19 : {hex(self.X19)} | X20 : {hex(self.X20)} |
+            X21 : {hex(self.X21)} | X22 : {hex(self.X22)} | X23 : {hex(self.X23)} | X24 : {hex(self.X24)} | X25 : {hex(self.X25)} | X26 : {hex(self.X26)} | X27 : {hex(self.X27)} |
             X28 : {hex(self.X28)} | X29 : {hex(self.X29)} | LR/X30 : {hex(self.X30)} | SP/X31 : {hex(self.SP)}
         """)
 
@@ -418,7 +435,7 @@ class ARM64_Concrete_State:
     @property
     def X0(self):
         return self.read_config(X0)
-    
+
     @X0.setter
     def X0(self, value : int):
         self.write_config(X0, value)
@@ -426,7 +443,7 @@ class ARM64_Concrete_State:
     @property
     def X1(self):
         return self.read_config(X1)
-    
+
     @X1.setter
     def X1(self, value : int):
         self.write_config(X1, value)
@@ -434,7 +451,7 @@ class ARM64_Concrete_State:
     @property
     def X2(self):
         return self.read_config(X2)
-    
+
     @X2.setter
     def X2(self, value : int):
         self.write_config(X2, value)
@@ -442,7 +459,7 @@ class ARM64_Concrete_State:
     @property
     def X3(self):
         return self.read_config(X3)
-    
+
     @X3.setter
     def X3(self, value : int):
         self.write_config(X3, value)
@@ -450,7 +467,7 @@ class ARM64_Concrete_State:
     @property
     def X4(self):
         return self.read_config(X4)
-    
+
     @X4.setter
     def X4(self, value : int):
         self.write_config(X4, value)
@@ -458,7 +475,7 @@ class ARM64_Concrete_State:
     @property
     def X5(self):
         return self.read_config(X5)
-    
+
     @X5.setter
     def X5(self, value : int):
         self.write_config(X5, value)
@@ -466,7 +483,7 @@ class ARM64_Concrete_State:
     @property
     def X6(self):
         return self.read_config(X6)
-    
+
     @X6.setter
     def X6(self, value : int):
         self.write_config(X6, value)
@@ -474,7 +491,7 @@ class ARM64_Concrete_State:
     @property
     def X7(self):
         return self.read_config(X7)
-    
+
     @X7.setter
     def X7(self, value : int):
         self.write_config(X7, value)
@@ -482,7 +499,7 @@ class ARM64_Concrete_State:
     @property
     def X8(self):
         return self.read_config(X8)
-    
+
     @X8.setter
     def X8(self, value : int):
         self.write_config(X8, value)
@@ -490,7 +507,7 @@ class ARM64_Concrete_State:
     @property
     def X9(self):
         return self.read_config(X9)
-    
+
     @X9.setter
     def X9(self, value : int):
         self.write_config(X9, value)
@@ -498,7 +515,7 @@ class ARM64_Concrete_State:
     @property
     def X10(self):
         return self.read_config(X10)
-    
+
     @X10.setter
     def X10(self, value : int):
         self.write_config(X10, value)
@@ -506,7 +523,7 @@ class ARM64_Concrete_State:
     @property
     def X11(self):
         return self.read_config(X11)
-    
+
     @X11.setter
     def X11(self, value : int):
         self.write_config(X11, value)
@@ -514,7 +531,7 @@ class ARM64_Concrete_State:
     @property
     def X12(self):
         return self.read_config(X12)
-    
+
     @X12.setter
     def X12(self, value : int):
         self.write_config(X12, value)
@@ -522,7 +539,7 @@ class ARM64_Concrete_State:
     @property
     def X13(self):
         return self.read_config(X13)
-    
+
     @X13.setter
     def X13(self, value : int):
         self.write_config(X13, value)
@@ -530,7 +547,7 @@ class ARM64_Concrete_State:
     @property
     def X14(self):
         return self.read_config(X14)
-    
+
     @X14.setter
     def X14(self, value : int):
         self.write_config(X14, value)
@@ -538,7 +555,7 @@ class ARM64_Concrete_State:
     @property
     def X15(self):
         return self.read_config(X15)
-    
+
     @X15.setter
     def X15(self, value : int):
         self.write_config(X15, value)
@@ -546,7 +563,7 @@ class ARM64_Concrete_State:
     @property
     def X16(self):
         return self.read_config(X16)
-    
+
     @X16.setter
     def X16(self, value : int):
         self.write_config(X16, value)
@@ -554,7 +571,7 @@ class ARM64_Concrete_State:
     @property
     def X17(self):
         return self.read_config(X17)
-    
+
     @X17.setter
     def X17(self, value : int):
         self.write_config(X17, value)
@@ -562,7 +579,7 @@ class ARM64_Concrete_State:
     @property
     def X18(self):
         return self.read_config(X18)
-    
+
     @X18.setter
     def X18(self, value : int):
         self.write_config(X18, value)
@@ -570,7 +587,7 @@ class ARM64_Concrete_State:
     @property
     def X19(self):
         return self.read_config(X19)
-    
+
     @X19.setter
     def X19(self, value : int):
         self.write_config(X19, value)
@@ -578,7 +595,7 @@ class ARM64_Concrete_State:
     @property
     def X20(self):
         return self.read_config(X20)
-    
+
     @X20.setter
     def X20(self, value : int):
         self.write_config(X20, value)
@@ -586,7 +603,7 @@ class ARM64_Concrete_State:
     @property
     def X21(self):
         return self.read_config(X21)
-    
+
     @X21.setter
     def X21(self, value : int):
         self.write_config(X21, value)
@@ -594,7 +611,7 @@ class ARM64_Concrete_State:
     @property
     def X22(self):
         return self.read_config(X22)
-    
+
     @X22.setter
     def X22(self, value : int):
         self.write_config(X22, value)
@@ -602,7 +619,7 @@ class ARM64_Concrete_State:
     @property
     def X23(self):
         return self.read_config(X23)
-    
+
     @X23.setter
     def X23(self, value : int):
         self.write_config(X23, value)
@@ -610,7 +627,7 @@ class ARM64_Concrete_State:
     @property
     def X24(self):
         return self.read_config(X24)
-    
+
     @X24.setter
     def X24(self, value : int):
         self.write_config(X24, value)
@@ -618,7 +635,7 @@ class ARM64_Concrete_State:
     @property
     def X25(self):
         return self.read_config(X25)
-    
+
     @X25.setter
     def X25(self, value : int):
         self.write_config(X25, value)
@@ -626,7 +643,7 @@ class ARM64_Concrete_State:
     @property
     def X26(self):
         return self.read_config(X26)
-    
+
     @X26.setter
     def X26(self, value : int):
         self.write_config(X26, value)
@@ -634,7 +651,7 @@ class ARM64_Concrete_State:
     @property
     def X27(self):
         return self.read_config(X27)
-    
+
     @X27.setter
     def X27(self, value : int):
         self.write_config(X27, value)
@@ -642,7 +659,7 @@ class ARM64_Concrete_State:
     @property
     def X28(self):
         return self.read_config(X28)
-    
+
     @X28.setter
     def X28(self, value : int):
         self.write_config(X28, value)
@@ -650,7 +667,7 @@ class ARM64_Concrete_State:
     @property
     def X29(self):
         return self.read_config(X29)
-    
+
     @X29.setter
     def X29(self, value : int):
         self.write_config(X29, value)
@@ -658,7 +675,7 @@ class ARM64_Concrete_State:
     @property
     def X30(self):
         return self.read_config(X30)
-    
+
     @X30.setter
     def X30(self, value : int):
         self.write_config(X30, value)

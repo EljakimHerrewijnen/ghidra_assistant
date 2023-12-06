@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amlogic S905X3 &mdash; Ghidra Assistant 0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/drawio.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="MSM8996" href="../../msm8996/device_docs/index.html" />
+    <link rel="prev" title="GA debugger" href="../../../debugger.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Ghidra Assistant
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction to the Ghidra Assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">Setup</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Architectures:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../architectures/aarch64/index.html">ARM64</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../architectures/arm_thumb/index.html">ARM Thumb Mode</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Emulator:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../emulator/emulator_overview.html">GA Emulator</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Debugger:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../debugger.html">GA debugger</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Devices:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Amlogic S905X3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../msm8996/device_docs/index.html">MSM8996</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pixel3xl_ga_code/device_docs/index.html">Pixel 3/XL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../titan_m2/device_docs/index.html">Titan M2</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Ghidra Assistant</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Amlogic S905X3</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/devices/Amlogic_S905X3/device_docs/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="amlogic-s905x3">
+<h1>Amlogic S905X3<a class="headerlink" href="#amlogic-s905x3" title="Permalink to this heading"></a></h1>
+<p>This Amlogic processor is in a lot of Android TV boxes, which you can buy on marketplaces like Aliexpress.
+These devices are fun to buy because they are cheap but have quite a lot of pheriperals and features, which you would usually not have in a development board.</p>
+<p>The device used in here is the <code class="docutils literal notranslate"><span class="pre">VONTAR</span> <span class="pre">X96</span> <span class="pre">Air</span></code> which is <a class="reference external" href="https://nl.aliexpress.com/item/4000218231701.html?spm=a2g0o.order_list.order_list_main.140.21ef79d2UAsDbQ&amp;gatewayAdapt=glo2nld">available on aliexpress</a>.</p>
+<p>This device has the following features:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>4GB LPDDR4 RAM</p></li>
+<li><p>64GB eMMC storage</p></li>
+<li><p>1000Mbit ethernet</p></li>
+<li><p>Wifi &amp; Bluetooth</p></li>
+</ul>
+</div></blockquote>
+<section id="bootrom-exploit">
+<h2>Bootrom Exploit<a class="headerlink" href="#bootrom-exploit" title="Permalink to this heading"></a></h2>
+<p>There is already a bootrom vulnerability for this SoC family, which was published on <a class="reference external" href="https://fredericb.info/2021/02/amlogic-usbdl-unsigned-code-loader-for-amlogic-bootrom.html">fred’s blog</a>.
+This vulnerability has not yet been exploited on this specific SoC type, so let’s first exploit it.</p>
+<p>Let’s first take a look at the memory layout used by the SoC</p>
+<img alt="../../../_images/soc_memory_1.svg" class="drawio" src="../../../_images/soc_memory_1.svg" /><p>According to the documentation from fred’s notes, the vulnerability is in the handling of the <strong>REQ_WR_LARGE_MEM</strong> command.
+This command does not check if we send empty transfers and due to this we can overflow the download buffer and overwrite our <code class="docutils literal notranslate"><span class="pre">Link</span> <span class="pre">Register</span> <span class="pre">(LR)</span></code>.</p>
+<p>To check if this vulnerability is present we will first see if we can crash the device. We do this by trying to overflow a large portion of the download buffer and to send payloads with valid pointers to the start of the bootrom.
+We should be able to send at least 64kb of data to the download buffer, if we can overflow the first part we should at some point get a crash and have an indication of where the stack is located on the target device.</p>
+<p>The code to do this is here:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_vulnerability</span><span class="p">():</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">AmlogicDevice</span><span class="p">()</span>
+    <span class="n">controlData</span> <span class="o">=</span> <span class="n">pack</span><span class="p">(</span><span class="s1">&#39;&lt;IIII&#39;</span><span class="p">,</span> <span class="n">D_BUFFER_START</span><span class="p">,</span> <span class="n">D_BUFFER_MAX</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">dev</span><span class="o">.</span><span class="n">ctrl_transfer</span><span class="p">(</span><span class="n">bmRequestType</span> <span class="o">=</span> <span class="mh">0x40</span><span class="p">,</span>
+        <span class="n">bRequest</span> <span class="o">=</span> <span class="n">REQ_WR_LARGE_MEM</span><span class="p">,</span>
+        <span class="n">wValue</span> <span class="o">=</span> <span class="n">BULK_TRANSFER_SIZE</span><span class="p">,</span>
+        <span class="n">wIndex</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span>
+        <span class="n">data_or_wLength</span> <span class="o">=</span> <span class="n">controlData</span><span class="p">)</span>
+
+    <span class="n">guess_overflow</span> <span class="o">=</span> <span class="mi">1070</span> <span class="c1"># 0xfffe3688 on a reference device, which is 1078 empty buffers ((0xfffe3688 - D_BUFFER_START) // BULK_TRANSFER_SIZE)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">guess_overflow</span><span class="p">):</span>
+        <span class="n">device</span><span class="o">.</span><span class="n">usb_write</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">overflow_addr</span> <span class="o">=</span> <span class="n">D_BUFFER_START</span> <span class="o">+</span> <span class="p">(</span><span class="n">guess_overflow</span> <span class="o">*</span> <span class="n">BULK_TRANSFER_SIZE</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">&quot;&lt;Q&quot;</span><span class="p">,</span> <span class="n">BOOTROM_START</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">BULK_TRANSFER_SIZE</span> <span class="o">//</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">device</span><span class="o">.</span><span class="n">usb_write</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Overflowing: </span><span class="si">{</span><span class="nb">hex</span><span class="p">(</span><span class="n">overflow_addr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Results in:</span>
+<span class="c1"># [i] Overflowing: 0xfffe2e00</span>
+</pre></div>
+</div>
+<p>The result of this code is that the device crashes at overflow address <strong>0xfffe2e00</strong>, meaning we are probably overwriting the stack here.</p>
+<p>This overflow can now be visualised as follows:</p>
+<img alt="../../../_images/soc_memory_overflow.svg" class="drawio" src="../../../_images/soc_memory_overflow.svg" /><section id="github">
+<h3>github<a class="headerlink" href="#github" title="Permalink to this heading"></a></h3>
+<p>As it turns out, someone else has already exploited this vulnerability, this code can be found <a class="reference external" href="https://github.com/Raxone/amlogic-usbdl_s905x3">on github</a>. This is why it is always good to do a thorough research on existing research when starting a new project.</p>
+</section>
+<section id="dumping-the-bootrom">
+<h3>Dumping the bootrom<a class="headerlink" href="#dumping-the-bootrom" title="Permalink to this heading"></a></h3>
+<p>Using the above code and reference code from uboot we can attach the debugger to this device. We need to implement send/receive, however with only a functioning send we can already know that the debugger is living and we first want to dump the bootrom.</p>
+<p>One of the <em>currently</em> missing functionalities is something to run code on the first boot/setup of the GA, since it assumes peek/poke is already setup. This might be something we will need to change in the future. We can dump the bootrom with the following code:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">recv_data</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">//Dump bootrom</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">tx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="n">send</span><span class="p">((</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="mh">0xFFFF0000</span><span class="p">,</span><span class="w"> </span><span class="mh">0x10000</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">tx</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="u-boot">
+<h2>U-Boot<a class="headerlink" href="#u-boot" title="Permalink to this heading"></a></h2>
+<p>To get more insight into some <code class="docutils literal notranslate"><span class="pre">BootROM</span></code> functions, we can build <code class="docutils literal notranslate"><span class="pre">U-Boot</span></code>. This is an opensource and widely used bootloader.
+A lot of functionalities are copied into the <code class="docutils literal notranslate"><span class="pre">BootROM</span></code>, meaning that we could try to get some structures and functions from <code class="docutils literal notranslate"><span class="pre">U-Boot</span></code> into Ghidra.</p>
+<p>To do this we will have to build <code class="docutils literal notranslate"><span class="pre">U-Boot</span></code> with symbols, then create a symbol database from <code class="docutils literal notranslate"><span class="pre">U-Boot</span></code> into Ghidra and use that database to find and rename functions in the <code class="docutils literal notranslate"><span class="pre">BootROM</span></code></p>
+<section id="build-u-boot">
+<h3>Build U-Boot<a class="headerlink" href="#build-u-boot" title="Permalink to this heading"></a></h3>
+<p>To build U-Boot you will need:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a gcc-aarch64 compiler (sudo apt install gcc-aarch64-linux-gnu)</p></li>
+<li><p>bison (sudo apt install bison)</p></li>
+<li><p>flex (sudo apt install flex)</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git<span class="w"> </span>clone<span class="w"> </span>https://source.denx.de/u-boot/u-boot.git
+<span class="gp">$ </span><span class="nb">export</span><span class="w"> </span><span class="nv">CROSS_COMPILE</span><span class="o">=</span>aarch64-linux-gnu-
+<span class="gp">$ </span><span class="nb">export</span><span class="w"> </span><span class="nv">ARCH</span><span class="o">=</span>arm64
+<span class="gp">$ </span>make<span class="w"> </span>sei610_defconfig
+<span class="gp">$ </span>make<span class="w"> </span>-j2
+</pre></div>
+</div>
+</section>
+</section>
+<section id="emulation">
+<h2>Emulation<a class="headerlink" href="#emulation" title="Permalink to this heading"></a></h2>
+</section>
+<section id="id1">
+<h2>Emulation<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
+<p>Figure out where the stack is set:</p>
+<figure class="align-default">
+<img alt="../../../_images/find_stack_address.png" src="../../../_images/find_stack_address.png" />
+</figure>
+<p>The stack is set at: <code class="docutils literal notranslate"><span class="pre">0xfffe3800</span></code>.</p>
+<p>The goal is to make a fuzzer for the <code class="docutils literal notranslate"><span class="pre">USB</span></code> and <code class="docutils literal notranslate"><span class="pre">I2C</span></code> devices.
+To get insight and help with reverse engineering an emulator is being developed.</p>
+<p>UART is implemented in software. When the device boots it always sends a message over UART, this can now be printed:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>print(bytes(self.get_device(&quot;UART&quot;).get_rx()))
+b&#39;BL:511f6b:\x00\x00\x00\x00\x00\x00;FEAT:FF800228:0;POC:0;RCY:0;USB:0;&#39;
+</pre></div>
+</div>
+<p>Timer device is also implemented.</p>
+<ul class="simple">
+<li><p>Implement USB device</p></li>
+<li><p>Dump Efuses from reference device and use it in the emulator, along with an efuse device</p></li>
+</ul>
+<p>Quickly after boot a string is read from I2C.
+According to several sources on the internet this I2C device is in the HDMI port(TODO check this).</p>
+<p>I2C is a serial protocol, which relies on 2 lines, SCK for clock and SDA for data. For this SoC and using the emulator we can see that GPIO25 is used for SCL and GPIO27 for SDA.</p>
+<p>For Emulating this</p>
+<p>Explanation of I2C according to ChatGPT:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>The I2C (Inter-Integrated Circuit) protocol is a popular serial communication protocol used for communication between integrated circuits (ICs) in various electronic devices. It was developed by Philips (now NXP Semiconductors) and is widely adopted due to its simplicity and versatility.
+
+Key features of the I2C protocol include:
+
+Master-Slave Architecture: The I2C bus typically consists of one or more master devices and multiple slave devices. The master device initiates and controls the communication, while the slave devices respond to commands and provide data or services.
+
+Two-Wire Communication: I2C utilizes two lines for communication: a serial data line (SDA) and a serial clock line (SCL). Both lines are bidirectional, allowing data to be transmitted in both directions.
+
+Addressing: Each slave device on the I2C bus has a unique address, allowing the master device to communicate with specific slaves. Addressing can be 7-bit or 10-bit, depending on the device and the variant of the I2C protocol.
+
+Start and Stop Conditions: Communication on the I2C bus is initiated by the master device by asserting a start condition (a falling edge on SDA while SCL is high). The start condition indicates the beginning of a transmission. The master also sends a stop condition (a rising edge on SDA while SCL is high) to indicate the end of a transmission.
+
+Data Transmission: Data is transferred in bytes (8 bits) between the master and slave devices. Each byte is followed by an acknowledgment (ACK) or not-acknowledgment (NACK) bit, indicating whether the receiver successfully received the data.
+
+Clock Synchronization: The I2C protocol relies on the synchronized clock signals on the SCL line. Both the master and slave devices operate based on this clock signal.
+
+Standard and Fast Modes: The I2C protocol supports two main modes: Standard Mode (up to 100 kbit/s) and Fast Mode (up to 400 kbit/s). Some devices also support High-Speed Mode (up to 3.4 Mbit/s) and Ultra-Fast Mode (up to 5 Mbit/s).
+
+Multi-Master Support: I2C supports multi-master communication, allowing multiple master devices to coexist on the same bus. Collision detection and arbitration mechanisms are employed to prevent conflicts and ensure proper communication.
+
+The I2C protocol is commonly used for various purposes, including connecting sensors, memory devices, displays, and other peripheral devices to microcontrollers, embedded systems, and other electronic devices. It provides a simple and efficient means of serial communication with minimal wiring requirements.
+
+It&#39;s important to note that different devices and implementations may have specific variations or additional features built on top of the basic I2C protocol. Therefore, it&#39;s always recommended to refer to the device datasheet or the specific implementation documentation for detailed information on the usage and configuration of I2C in a particular system.
+</pre></div>
+</div>
+<section id="implementing-usb">
+<h3>Implementing USB<a class="headerlink" href="#implementing-usb" title="Permalink to this heading"></a></h3>
+</section>
+</section>
+<section id="debugger-implementation">
+<h2>Debugger Implementation<a class="headerlink" href="#debugger-implementation" title="Permalink to this heading"></a></h2>
+<p>The debugger for this processor is implemented with the following memory map:</p>
+<img alt="../../../_images/debugger_memory_overview.svg" class="drawio" src="../../../_images/debugger_memory_overview.svg" /></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../../debugger.html" class="btn btn-neutral float-left" title="GA debugger" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../msm8996/device_docs/index.html" class="btn btn-neutral float-right" title="MSM8996" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eljakim Herrewijnen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

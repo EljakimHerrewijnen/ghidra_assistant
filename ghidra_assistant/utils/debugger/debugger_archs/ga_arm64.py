@@ -56,9 +56,9 @@ class GA_arm64_debugger(BaseArch_debugger):
             if len(d) == blk_sz:
                 self.write(b"ACK\x00")
             received += d
-        # if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
-        #     self.write(b"ACK\x00")
-        #     received += self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            self.write(b"ACK\x00")
+            # received += self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
         return received
 
     def memdump_region_small(self, offset, size):
@@ -223,7 +223,7 @@ class GA_arm64_debugger(BaseArch_debugger):
         Restore the saved stack from the memory dump and jump to a user supplied address
         '''
         self.state.DEBUGGER_JUMP = address
-        self.write("REST")
+        self.write(b"REST")
 
     def disable_mmu(self, el = 3):
         '''

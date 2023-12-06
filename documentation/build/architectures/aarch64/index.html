@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARM64 &mdash; Ghidra Assistant 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/drawio.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="ARM Thumb Mode" href="../arm_thumb/index.html" />
+    <link rel="prev" title="Setup" href="../../setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Ghidra Assistant
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction to the Ghidra Assistant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../setup.html">Setup</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Architectures:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ARM64</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vector-tables-in-arm64">Vector Tables in ARM64</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#vector-exception-levels">Vector Exception Levels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-the-vector-base-address">Setting the Vector Base Address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arm-smc-calling-convention">ARM SMC Calling Convention</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#stack-pointers">Stack Pointers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#debugger-vbar-implementation">Debugger VBAR Implementation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#memory-managment-unit-on-arm64">Memory Managment Unit on ARM64</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-level-pagetable-at-el3">Single Level Pagetable at EL3</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#translation-regime">Translation Regime</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#translation-table">Translation Table</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pagetable-entry">Pagetable Entry</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-paging">Automatic Paging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#system-configuration">System Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#debugger-storage-overview-on-arm64">Debugger Storage Overview on ARM64</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../arm_thumb/index.html">ARM Thumb Mode</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Emulator:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../emulator/emulator_overview.html">GA Emulator</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Debugger:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../debugger.html">GA debugger</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Devices:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/Amlogic_S905X3/device_docs/index.html">Amlogic S905X3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/msm8996/device_docs/index.html">MSM8996</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/pixel3xl_ga_code/device_docs/index.html">Pixel 3/XL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../devices/titan_m2/device_docs/index.html">Titan M2</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Ghidra Assistant</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>ARM64</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/architectures/aarch64/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="arm64">
+<h1>ARM64<a class="headerlink" href="#arm64" title="Permalink to this heading"></a></h1>
+<p>Documentation for the ARM64 architecture.</p>
+<section id="vector-tables-in-arm64">
+<h2>Vector Tables in ARM64<a class="headerlink" href="#vector-tables-in-arm64" title="Permalink to this heading"></a></h2>
+<p>A lot of this documentation can also be found in the <a class="reference external" href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=&amp;ved=2ahUKEwitkfqjqNz5AhUJHuwKHZ3vAj4QFnoECBMQAQ&amp;url=https%3A%2F%2Fdocumentation-service.arm.com%2Fstatic%2F5f8ea482f86e16515cdbe3c6%3Ftoken%3D&amp;usg=AOvVaw3QI7Lwrcg6B3BmQ5syZV70">ARM SMC calling convention documentation</a></p>
+<section id="vector-exception-levels">
+<h3>Vector Exception Levels<a class="headerlink" href="#vector-exception-levels" title="Permalink to this heading"></a></h3>
+<p>In ARM64 each there is a Vector table for each Exception level, except for EL0. So, in practice there is a Vector table for:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>EL3 <code class="docutils literal notranslate"><span class="pre">Secure</span> <span class="pre">Monitor</span> <span class="pre">Call</span> <span class="pre">(SMC)</span></code></p></li>
+<li><p>EL2 <code class="docutils literal notranslate"><span class="pre">Hyper</span> <span class="pre">Visor</span> <span class="pre">Call</span> <span class="pre">(HVC)</span></code></p></li>
+<li><p>EL1 <code class="docutils literal notranslate"><span class="pre">Super</span> <span class="pre">Visor</span> <span class="pre">Call</span> <span class="pre">(SVC)</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>Documentation about this can be found in <a class="reference external" href="https://developer.arm.com/documentation/100933/0100/AArch64-exception-vector-table">the ARM documentation</a></p>
+<img alt="../../_images/vector_table_arm64.png" src="../../_images/vector_table_arm64.png" />
+<p>This vector table can be allocated and filled for each of the vector tables described above.</p>
+</section>
+<section id="setting-the-vector-base-address">
+<h3>Setting the Vector Base Address<a class="headerlink" href="#setting-the-vector-base-address" title="Permalink to this heading"></a></h3>
+<p>To set the location of this vector table a call <code class="docutils literal notranslate"><span class="pre">MSR</span></code> call can be done to <code class="docutils literal notranslate"><span class="pre">VBAR_ELX</span></code> which will write an address to that register. When an execption call is executed, this address is fetched and execution will move to that page, with the corresponding Execption Level(EL)</p>
+</section>
+<section id="arm-smc-calling-convention">
+<h3>ARM SMC Calling Convention<a class="headerlink" href="#arm-smc-calling-convention" title="Permalink to this heading"></a></h3>
+<p>When doing an SMC call in arm64 a synchronous exception is generated that is handled by the secure monitor in EL3. The SMC call can be in both 32 and 64 bit mode, depending on various bits in the instruction. For most phones this will be in 64 bit mode. A short overview of an SMC call and the properties can be seen below:</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This picture is currently invalid!</p>
+</div>
+<img alt="../../_images/smc_call_arm64.png" src="../../_images/smc_call_arm64.png" />
+<p>When doing a SMC call, the register <code class="docutils literal notranslate"><span class="pre">ELR_ELn</span></code> is updated to show the location of where the call came from. This is the address after the call where the exception came from. When doing an <code class="docutils literal notranslate"><span class="pre">ERET</span></code> instruction this value is written to the <code class="docutils literal notranslate"><span class="pre">PC</span></code>.</p>
+<section id="stack-pointers">
+<h4>Stack Pointers<a class="headerlink" href="#stack-pointers" title="Permalink to this heading"></a></h4>
+<p>Each Exception Level has its own stack pointers. The registers for these are:</p>
+<ul class="simple">
+<li><p>SP_EL0</p></li>
+<li><p>SP_EL1</p></li>
+<li><p>SP_EL2</p></li>
+<li><p>SP_EL3</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">SP_EL3</span></code> is innacessible in EL3, to read it you need to read the <code class="docutils literal notranslate"><span class="pre">SP</span></code>.</p>
+</section>
+</section>
+</section>
+<section id="debugger-vbar-implementation">
+<h2>Debugger VBAR Implementation<a class="headerlink" href="#debugger-vbar-implementation" title="Permalink to this heading"></a></h2>
+<p>The debugger uses a SMC call to insert a breakpoint at any address. When a SMC call is thrown the processor jumps to the address pointed to in the <code class="docutils literal notranslate"><span class="pre">VBAR_EL3</span></code> register.
+This register <a href="#id1"><span class="problematic" id="id2">**</span></a>has to ** point to the debugger.
+The debugger will first store all the registers in the storage location, overwrite the stack pointer and send the hello message <code class="docutils literal notranslate"><span class="pre">b'GiAs'</span></code> to the host.</p>
+<p>An overview of what is happening when a SMC call is dan can be seen below:</p>
+<img alt="../../_images/smc_handling_arm64.jpg" src="../../_images/smc_handling_arm64.jpg" />
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Currently register X15 gets corrupted when an SMC call is handled.</p>
+</div>
+</section>
+<section id="memory-managment-unit-on-arm64">
+<h2>Memory Managment Unit on ARM64<a class="headerlink" href="#memory-managment-unit-on-arm64" title="Permalink to this heading"></a></h2>
+<p>This part describes the memory managment unit on ARM64 and how it is used by the debugger.</p>
+<section id="single-level-pagetable-at-el3">
+<h3>Single Level Pagetable at EL3<a class="headerlink" href="#single-level-pagetable-at-el3" title="Permalink to this heading"></a></h3>
+<p>The documentation described here can also be found at the <a class="reference external" href="https://developer.arm.com/documentation/102416/0100/Single-level-table-at-EL3">official ARM documentation</a>.</p>
+<section id="translation-regime">
+<h4>Translation Regime<a class="headerlink" href="#translation-regime" title="Permalink to this heading"></a></h4>
+<p>Register <code class="docutils literal notranslate"><span class="pre">TCR_ELx</span></code> is used to control the <strong>Tranlation Regime</strong> for the pagetables. The documentation for the <code class="docutils literal notranslate"><span class="pre">TCR_EL3</span></code> can be found in the <a class="reference external" href="https://developer.arm.com/documentation/ddi0500/d/system-control/aarch64-register-descriptions/translation-control-register--el3">official ARM documentation</a>.</p>
+</section>
+<section id="translation-table">
+<h4>Translation Table<a class="headerlink" href="#translation-table" title="Permalink to this heading"></a></h4>
+<p>The location of the page table is located in register <code class="docutils literal notranslate"><span class="pre">ttbr0_el3</span></code>. Depending of the configuration of <code class="docutils literal notranslate"><span class="pre">TCR_EL3</span></code> the bits for address selection can change.</p>
+<p>More documentation can be found <a class="reference external" href="https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/TTBR0-EL3--Translation-Table-Base-Register-0--EL3-">here</a></p>
+</section>
+<section id="pagetable-entry">
+<h4>Pagetable Entry<a class="headerlink" href="#pagetable-entry" title="Permalink to this heading"></a></h4>
+<p>The following diagram shows the format of a stage 1 level 1 table entry on EL3.</p>
+<img alt="../../_images/singlelevel_el3_pte.png" src="../../_images/singlelevel_el3_pte.png" />
+</section>
+</section>
+<section id="automatic-paging">
+<h3>Automatic Paging<a class="headerlink" href="#automatic-paging" title="Permalink to this heading"></a></h3>
+<p>Automatic paging for page walking will be setup in the debugger.
+For this the <code class="docutils literal notranslate"><span class="pre">ARM64_Concrete_State</span></code> contains a mmu with class <code class="docutils literal notranslate"><span class="pre">ARM64_MMU</span></code>.</p>
+</section>
+</section>
+<section id="system-configuration">
+<h2>System Configuration<a class="headerlink" href="#system-configuration" title="Permalink to this heading"></a></h2>
+<p>Configuration for the processor can be set in the System Control Register for different exception levels. These registers are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SCTLR_EL3</p></li>
+<li><p>SCTLR_EL2</p></li>
+<li><p>SCTLR_EL1</p></li>
+</ul>
+</div></blockquote>
+<p>More information about the configuration settings can be found in the <a class="reference external" href="https://developer.arm.com/documentation/ddi0601/2020-12/AArch64-Registers/SCTLR-EL3--System-Control-Register--EL3-">ARM documentation</a></p>
+</section>
+<section id="debugger-storage-overview-on-arm64">
+<h2>Debugger Storage Overview on ARM64<a class="headerlink" href="#debugger-storage-overview-on-arm64" title="Permalink to this heading"></a></h2>
+<p>Overview of the storage setup on ARM64 for the debugger. To interact with this storage dump you can either dump the storage location and parse the entries or use the <em>utils/debugger/debugger_archs/arm64_processor_state.py</em> processor state, which is also passed as an argument in <strong>GA_arm64_debugger</strong>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All addresses below asume <code class="docutils literal notranslate"><span class="pre">STORAGE_LOCATION</span></code> + <strong>Address</strong></p>
+</div>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Address</p></th>
+<th class="head"><p>Function</p></th>
+<th class="head"><p>Comment</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0x0</p></td>
+<td><p>X0</p></td>
+<td><p>Stores Register X0</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x8</p></td>
+<td><p>X1</p></td>
+<td><p>Stores Register X1</p></td>
+</tr>
+<tr class="row-even"><td><p>0x10</p></td>
+<td><p>X2</p></td>
+<td><p>Stores Register X2</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x18</p></td>
+<td><p>X3</p></td>
+<td><p>Stores Register X3</p></td>
+</tr>
+<tr class="row-even"><td><p>0x20</p></td>
+<td><p>X4</p></td>
+<td><p>Stores Register X4</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x28</p></td>
+<td><p>X5</p></td>
+<td><p>Stores Register X5</p></td>
+</tr>
+<tr class="row-even"><td><p>0x30</p></td>
+<td><p>X6</p></td>
+<td><p>Stores Register X6</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x38</p></td>
+<td><p>X7</p></td>
+<td><p>Stores Register X7</p></td>
+</tr>
+<tr class="row-even"><td><p>0x40</p></td>
+<td><p>X8</p></td>
+<td><p>Stores Register X8</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x48</p></td>
+<td><p>X9</p></td>
+<td><p>Stores Register X9</p></td>
+</tr>
+<tr class="row-even"><td><p>0x50</p></td>
+<td><p>X10</p></td>
+<td><p>Stores Register X10</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x58</p></td>
+<td><p>X11</p></td>
+<td><p>Stores Register X11</p></td>
+</tr>
+<tr class="row-even"><td><p>0x60</p></td>
+<td><p>X12</p></td>
+<td><p>Stores Register X12</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x68</p></td>
+<td><p>X13</p></td>
+<td><p>Stores Register X13</p></td>
+</tr>
+<tr class="row-even"><td><p>0x70</p></td>
+<td><p>X14</p></td>
+<td><p>Stores Register X14</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x78</p></td>
+<td><p>X15</p></td>
+<td><p>Stores Register X15</p></td>
+</tr>
+<tr class="row-even"><td><p>0x80</p></td>
+<td><p>X16</p></td>
+<td><p>Stores Register X16</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x88</p></td>
+<td><p>X17</p></td>
+<td><p>Stores Register X17</p></td>
+</tr>
+<tr class="row-even"><td><p>0x90</p></td>
+<td><p>X18</p></td>
+<td><p>Stores Register X18</p></td>
+</tr>
+<tr class="row-odd"><td><p>0x98</p></td>
+<td><p>X19</p></td>
+<td><p>Stores Register X19</p></td>
+</tr>
+<tr class="row-even"><td><p>0xa0</p></td>
+<td><p>X20</p></td>
+<td><p>Stores Register X20</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xa8</p></td>
+<td><p>X21</p></td>
+<td><p>Stores Register X21</p></td>
+</tr>
+<tr class="row-even"><td><p>0xb0</p></td>
+<td><p>X22</p></td>
+<td><p>Stores Register X22</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xb8</p></td>
+<td><p>X23</p></td>
+<td><p>Stores Register X23</p></td>
+</tr>
+<tr class="row-even"><td><p>0xc0</p></td>
+<td><p>X24</p></td>
+<td><p>Stores Register X24</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xc8</p></td>
+<td><p>X25</p></td>
+<td><p>Stores Register X25</p></td>
+</tr>
+<tr class="row-even"><td><p>0xd0</p></td>
+<td><p>X26</p></td>
+<td><p>Stores Register X26</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xd8</p></td>
+<td><p>X27</p></td>
+<td><p>Stores Register X27</p></td>
+</tr>
+<tr class="row-even"><td><p>0xe0</p></td>
+<td><p>X28</p></td>
+<td><p>Stores Register X28</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xe8</p></td>
+<td><p>X29</p></td>
+<td><p>Stores the <code class="docutils literal notranslate"><span class="pre">Frame</span> <span class="pre">Pointer</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>0xf0</p></td>
+<td><p>X30</p></td>
+<td><p>Stores the <code class="docutils literal notranslate"><span class="pre">Link</span> <span class="pre">Register</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>0xf8</p></td>
+<td><p>SP</p></td>
+<td><p>Stores the <code class="docutils literal notranslate"><span class="pre">Stack</span> <span class="pre">Pointer</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>0x100</p></td>
+<td><p>TTBR0_EL3</p></td>
+<td><p>Stores <code class="docutils literal notranslate"><span class="pre">TTBR0_EL3</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>0x108</p></td>
+<td><p>TTBR0_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x110</p></td>
+<td><p>TTBR0_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x118</p></td>
+<td><p>SCTLR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x120</p></td>
+<td><p>SCTLR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x128</p></td>
+<td><p>SCTLR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x130</p></td>
+<td><p>VBAR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x130</p></td>
+<td><p>VBAR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x140</p></td>
+<td><p>VBAR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x148</p></td>
+<td><p>TCR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x150</p></td>
+<td><p>TCR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x158</p></td>
+<td><p>TCR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x160</p></td>
+<td><p>ELR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x168</p></td>
+<td><p>ELR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x170</p></td>
+<td><p>ELR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x178</p></td>
+<td><p>SP_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x180</p></td>
+<td><p>SP_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x188</p></td>
+<td><p>SP_EL0</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x190</p></td>
+<td><p>SPSR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x198</p></td>
+<td><p>SPSR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x1a0</p></td>
+<td><p>SPSR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x1a8</p></td>
+<td><p>MAIR_EL3</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x1b0</p></td>
+<td><p>MAIR_EL2</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>0x1b8</p></td>
+<td><p>MAIR_EL1</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0x1c0</p></td>
+<td><p>CurrentEL</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>0xfc0</p></td>
+<td><p>DBG_SETUP_JUMP</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Set to 0x77 to jump to <code class="docutils literal notranslate"><span class="pre">DBG_SETUP_JUMP_ADDRESS</span></code> and when DEVICE_SETUP=1</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xfc8</p></td>
+<td><p>DBG_SETUP_JUMP_ADDRESS</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Address to jump to when <code class="docutils literal notranslate"><span class="pre">DBG_SETUP_JUMP</span></code> is set to <em>0x77</em></p></td>
+</tr>
+<tr class="row-even"><td><p>0xfd0</p></td>
+<td><p>DBG_MMU_DISABLE</p></td>
+<td><p><strong>DISABLED</strong> <code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Disable the MMU on entry and enable the MMU on leave</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xfd8</p></td>
+<td><p>DBG_JUMP_TO</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Address to jump to instead of the debugger</p></td>
+</tr>
+<tr class="row-even"><td><p>0xfe0</p></td>
+<td><p>DBG_CONT_EXEC</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Do not jump in debugger but into</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xfe8</p></td>
+<td><p>TEMP X0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Temporary storage for X0 value</p></td>
+</tr>
+<tr class="row-even"><td><p>0xff0</p></td>
+<td><p>Store X0</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Stores exception id for the <code class="docutils literal notranslate"><span class="pre">SMC</span></code> call</p></td>
+</tr>
+<tr class="row-odd"><td><p>0xff8</p></td>
+<td><p>JUMP_ADDR</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DEBUGGER</span></code> Memory location that instructs the debugger where to jump to</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This memory segment is still being updated to add registers</p>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">DBG_CONT_EXEC</span></code> is set to <strong>0x777</strong> the debugger will not enter the debugger_main address, but instead restore the original processor state and jump into <code class="docutils literal notranslate"><span class="pre">DBG_JUMP_TO</span></code>. This allows the debugger to be run without user interaction.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../setup.html" class="btn btn-neutral float-left" title="Setup" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../arm_thumb/index.html" class="btn btn-neutral float-right" title="ARM Thumb Mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Eljakim Herrewijnen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+Found Bugs
+==========
+Overview of found bugs and CVEs
+
++------+-----------------------------+--------+
+| Item | Note                        | Risk   |
++======+=============================+========+
+|      | CVE-2023-21399 ``EoP``      | High   |
++------+-----------------------------+--------+
+|      | CVE-2023-21041 ``OOBW EoP`` | High   |
++------+-----------------------------+--------+
+|      | CVE-2021-39683 ``EoP``      | Medium |
++------+-----------------------------+--------+
+|      | CVE-2021-39680 ``ID``       | Medium |
++------+-----------------------------+--------+
+|      | CVE-2021-39727 ``ID``       | Medium |
++------+-----------------------------+--------+
+|      | CVE-2021-1047 ``ID``        |        |
++------+-----------------------------+--------+
+|      | CVE-2021-39643 ``ID``       |        |
++------+-----------------------------+--------+
+
+CVE-2023-21399
+--------------
+Security bulletin update for `July <https://source.android.com/docs/security/bulletin/pixel/2023-07-01>`_.
+
+.. note::
+
+    The update for this firmware looks confusing. When extracting the ``evt.ec.bin`` the nugget string is: *2023-04-24_TitanM2_c277e001_nugget_v0.0.ab10000435-6cba04a-r*, which seems to be older than *2023-06-05_TitanM2_170d1863_nugget_v0.0.ab9702664-1568cbd-r*
+
+CVE-2023-21041
+--------------
+
+
+Keyring
+=======
+Search for the kernel keyring
+
+fscryptctl
+----------
+To build for ARM64
+
+.. code-block:: bash
+
+    CC=$TOOLCHAINENV/android-ndk-r21_Linux/toolchains/llvm/prebuilt/linux-x86_64/bin/armv7a-linux-androideabi29-clang++ make
+
+
+.. code-block:: bash
+
+    bluejay:/data/local/tmp # ./fscryptctl_arm64.elf get_policy /data/data
+    Encryption policy for /data/data:
+            Policy version: 2
+            Master key identifier: 056dbf8d2e9936b9b2f7462fda761a23
+            Contents encryption mode: AES-256-XTS
+            Filenames encryption mode: AES-256-CTS
+            Flags: PAD_32, IV_INO_LBLK_64
+
+generate dummy key
+
+.. code-block:: python
+
+    fout = open("/tmp/nfiekey", "wb")
+    fout.write(b"nfie" * 16) #512 bit key
+    fout.close()
+
+
+Copy fscryptctl and key to /data/local/tmp and on the device inject the key:
+
+.. code-block:: console
+
+    $ su
+    |bluejay:/data/local/tmp # ./fscryptctl_arm64.elf add_key /data < /data/local/tmp/nfiekey
+    66860a370fb962544598cf352600fe0d
+
+
+Titan Versions
+==============
+
+TitanM2_5acd630a_nugget_v0.0.ab7652006-cd9a5c7
+----------------------------------------------
+A memset() was added in app_nugget in block 0x000c56d8.
+
+Storage Bug
+-----------
+NOS production: error
+
+
+
++------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Device     | Comment                                                                                                                                                                              |
++============+======================================================================================================================================================================================+
+| Pixel Fold | `Citadel nugget_v0.0.ab10000435-6cba04a-r <https://support.google.com/pixelphone/thread/236137476/pixel-fold-h%C3%A4ngt-im-fastboot-mode-egal-was-ich-mache-es-hilft-nichts?hl=de>`_ |
++------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|            |                                                                                                                                                                                      |
++------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+Questions
+---------
+1. How to determine stack size in Ghidra.
+2. How was the content of the flash storage figured out.
