@@ -47,6 +47,7 @@ class ShellcodeCrafterARM64(ShellcodeCrafter):
         '''
         For doing an absolute branch in ARM.
         Creates a shellcode blob that will load the target address into the supplied register and branch to it.
+        
         '''
         shell = f"""
             ldr {register}, JUMP_addr

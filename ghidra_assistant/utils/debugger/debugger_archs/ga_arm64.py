@@ -122,6 +122,8 @@ class GA_arm64_debugger(BaseArch_debugger):
 
     def restore_and_jump(self, address : int):
         self.state.DEBUGGER_JUMP = struct.pack("<Q", address)
+        if not self.state.auto_sync:
+            self.sync_state()
         self.write(b"REST")
 
     def get_debugger_location(self):

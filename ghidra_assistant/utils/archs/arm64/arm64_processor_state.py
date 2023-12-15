@@ -105,16 +105,19 @@ class ARM64_Concrete_State:
             self.debugger.sync_special_regs()
 
     def get_ctx(self):
+        '''
+        TODO write as dict with registers and values
+        '''
         state  = f"""
-            PC: 0x????????\tRA: 0x{self.LR:08x}\tSP: 0x{self.SP:08x}\tGP: 0x????????
-            X0: 0x{self.X0:08x}\tX1: 0x{self.X1:08x}\tX2: 0x{self.X2:08x}\tX3:0x{self.X3:08x}\t
-            X4: 0x{self.X4:08x}\tX5: 0x{self.X5:08x}\tX6: 0x{self.X6:08x}\tX7: 0x{self.X7:08x}\t
-            X8: 0x{self.X8:08x}\tX9: 0x{self.X9:08x}\tX10: 0x{self.X10:08x}\tX11: 0x{self.X11:08x}\t
-            X12: 0x{self.X12:08x}\tX13: 0x{self.X13:08x}\tX14:0x{self.X14:08x}\tX15: 0x{self.X15:08x}\t
-            X16: 0x{self.X16:08x}\tX17: 0x{self.X17:08x}\tX18: 0x{self.X18:08x}\tX19: 0x{self.X19:08x}\t
-            X20: 0x{self.X20:08x}\tX21: 0x{self.X21:08x}\tX22: 0x{self.X22:08x}\tX23: 0x{self.X23:08x}\t
-            X24: 0x{self.X24:08x}\tX25: 0x{self.X25:08x}\tX26: 0x{self.X26:08x}\tX27: 0x{self.X27:08x}\t
-            X28: 0x{self.X28:08x}\tX29: 0x{self.X29:08x}\tX30: 0x{self.X30:08x}
+             PC: 0x????????????????\t LR: 0x{self.LR:16x}\t SP: 0x{self.SP:16x}\t FP: 0x{self.FP:16x}
+             X0: 0x{self.X0:16x}\t X1: 0x{self.X1:16x}\t X2: 0x{self.X2:16x}\t X3: 0x{self.X3:16x}\t
+             X4: 0x{self.X4:16x}\t X5: 0x{self.X5:16x}\t X6: 0x{self.X6:16x}\t X7: 0x{self.X7:16x}\t
+             X8: 0x{self.X8:16x}\t X9: 0x{self.X9:16x}\tX10: 0x{self.X10:16x}\tX11: 0x{self.X11:16x}\t
+            X12: 0x{self.X12:16x}\tX13: 0x{self.X13:16x}\tX14: 0x{self.X14:16x}\tX15: 0x{self.X15:16x}\t
+            X16: 0x{self.X16:16x}\tX17: 0x{self.X17:16x}\tX18: 0x{self.X18:16x}\tX19: 0x{self.X19:16x}\t
+            X20: 0x{self.X20:16x}\tX21: 0x{self.X21:16x}\tX22: 0x{self.X22:16x}\tX23: 0x{self.X23:16x}\t
+            X24: 0x{self.X24:16x}\tX25: 0x{self.X25:16x}\tX26: 0x{self.X26:16x}\tX27: {self.X27:#18x}\t
+            X28: 0x{self.X28:16x}\tX29: 0x{self.X29:16x}\tX30: 0x{self.X30:16x}
         """
         return state
 
@@ -409,6 +412,14 @@ class ARM64_Concrete_State:
     @SP.setter
     def SP(self, value : bytes):
         self.write_config(SP, value)
+
+    @property
+    def FP(self):
+        return self.read_config(X29)
+
+    @FP.setter
+    def FP(self, value : bytes):
+        self.write_config(X29, value)
 
     def print_ctx(self):
         info(
