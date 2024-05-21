@@ -60,7 +60,7 @@ class ARMThumb_Concrete_State:
         For Thumb documentation
         https://developer.arm.com/documentation/ddi0210/c/CACBCAAE
     '''
-    def __init__(self, base_config_address : int, debugger : "GA_arm_thumb_debugger", auto_sync=True, auto_sync_special=True) -> None:
+    def __init__(self, base_config_address : int, debugger : "GA_arm_thumb_debugger", auto_sync=False, auto_sync_special=False) -> None:
         self.baddr = base_config_address
         self.debugger = debugger
         self.auto_sync = auto_sync
@@ -78,6 +78,49 @@ class ARMThumb_Concrete_State:
             self.debugger.sync_state()
         if self.auto_sync_special:
             self.debugger.sync_special_regs()
+            
+    def get_ctx(self):
+        return {
+            "R0": self.R0,
+            "R1": self.R1,
+            "R2": self.R2,
+            "R3": self.R3,
+            "R4": self.R4,
+            "R5": self.R5,
+            "R6": self.R6,
+            "R7": self.R7,
+            "R8": self.R8,
+            "R9": self.R9,
+            "R10": self.R10,
+            "R11": self.R11,
+            "R12": self.R12,
+            "R13": self.R13,
+            "R14": self.R14,
+            "R15": self.R15,
+            "IFC": self.IFC,
+            "P": self.P,
+            "GP": self.GP,
+            "FP": self.FP,
+            "IP": self.IP,
+            "SP": self.SP,
+            "LR": self.LR,
+            "PC": self.PC,
+            "DBG_MMU_INTERACT": self.DBG_MMU_INTERACT,
+            "DBG_JUMP_TO": self.DBG_JUMP_TO,
+            "DBG_CONT_EXEC": self.DBG_CONT_EXEC,
+            "EXCEPTION_ID": self.EXCEPTION_ID,
+            "JUMP_ADDR": self.DEBUGGER_JUMP
+        }
+            
+    def print_ctx(self, print_fn=p_info):
+        state  = f"""
+            PC: 0x{self.PC:16x}\t LR: 0x{self.LR:16x}\t SP: 0x{self.SP:16x}\t FP: 0x{self.FP:16x}\t
+            R0: 0x{self.R0:16x}\t R1: 0x{self.R1:16x}\t R2: 0x{self.R2:16x}\t R3: 0x{self.R3:16x}\t
+            R4: 0x{self.R4:16x}\t R5: 0x{self.R5:16x}\t R6: 0x{self.R6:16x}\t R7: 0x{self.R7:16x}\t
+            R8: 0x{self.R8:16x}\t R9: 0x{self.R9:16x}\tR10: 0x{self.R10:16x}\tR11: 0x{self.R11:16x}\t
+            R12: 0x{self.R12:16x}\tR13: 0x{self.R13:16x}\tR14: 0x{self.R14:16x}\tR15: 0x{self.R15:16x}\t
+        """
+        print_fn(state)
 
     def read_config(self, config):
         return struct.unpack("<I", self.debugger.memdump_region(self.config_addr(config), 4))[0]

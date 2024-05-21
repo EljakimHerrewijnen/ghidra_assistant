@@ -26,14 +26,16 @@ class GA_arm_debugger(BaseArch_debugger):
         mem_param = struct.pack('<III', offset, size, 0) #Send extra 4 bytes to fill the 12 byte buffer
         self.write(mem_param)
         received = b''
-        blk_sz = 0x200
+        blk_sz = DEBUGGER_BLOCKSIZE_TRANSMISSION
         while len(received) < size:
-            if (remaining := size - len(received)) < 0x200:
+            if (remaining := size - len(received)) < DEBUGGER_BLOCKSIZE_TRANSMISSION:
                 blk_sz = remaining
             d = self.read(blk_sz)
             if len(d) == blk_sz:
                 self.write(b"ACK\x00")
             received += d
+        if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            self.write(b"ACK\x00")
         return received
 
     def memwrite_region(self, address, data):
