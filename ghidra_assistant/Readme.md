@@ -1,4 +1,0 @@
-# Ghidra Assistant
-
-## Concrete device
-

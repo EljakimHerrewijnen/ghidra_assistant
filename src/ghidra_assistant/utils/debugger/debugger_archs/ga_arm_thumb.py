@@ -36,8 +36,13 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
             if len(d) == blk_sz:
                 self.write(b"ACK\x00")
             received += d
-        # if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
-        #     self.write(b"ACK\x00")
+        if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            try:
+                # Some USB implementations require a read to clear the buffer??
+                self.read(0)
+            except:
+                pass
+            self.write(b"ACK\x00")
         return received
 
     def memwrite_region(self, address, data):

@@ -114,11 +114,11 @@ class ARMThumb_Concrete_State:
             
     def print_ctx(self, print_fn=p_info):
         state  = f"""
-            PC: 0x{self.PC:16x}\t LR: 0x{self.LR:16x}\t SP: 0x{self.SP:16x}\t FP: 0x{self.FP:16x}\t
-            R0: 0x{self.R0:16x}\t R1: 0x{self.R1:16x}\t R2: 0x{self.R2:16x}\t R3: 0x{self.R3:16x}\t
-            R4: 0x{self.R4:16x}\t R5: 0x{self.R5:16x}\t R6: 0x{self.R6:16x}\t R7: 0x{self.R7:16x}\t
-            R8: 0x{self.R8:16x}\t R9: 0x{self.R9:16x}\tR10: 0x{self.R10:16x}\tR11: 0x{self.R11:16x}\t
-            R12: 0x{self.R12:16x}\tR13: 0x{self.R13:16x}\tR14: 0x{self.R14:16x}\tR15: 0x{self.R15:16x}\t
+            PC: 0x{self.PC:8x}\t LR: 0x{self.LR:8x}\t SP: 0x{self.SP:8x}\t FP: 0x{self.FP:8x}\t
+            R0: 0x{self.R0:8x}\t R1: 0x{self.R1:8x}\t R2: 0x{self.R2:8x}\t R3: 0x{self.R3:8x}\t
+            R4: 0x{self.R4:8x}\t R5: 0x{self.R5:8x}\t R6: 0x{self.R6:8x}\t R7: 0x{self.R7:8x}\t
+            R8: 0x{self.R8:8x}\t R9: 0x{self.R9:8x}\tR10: 0x{self.R10:8x}\tR11: 0x{self.R11:8x}\t
+            R12: 0x{self.R12:8x}\tR13: 0x{self.R13:8x}\tR14: 0x{self.R14:8x}\tR15: 0x{self.R15:8x}\t
         """
         print_fn(state)
 
