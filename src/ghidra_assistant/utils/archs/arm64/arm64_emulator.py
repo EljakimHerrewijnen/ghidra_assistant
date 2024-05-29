@@ -27,7 +27,7 @@ class ARM64UC_Emulator():
         for mem in self.uc.mem_regions():
             if address >= mem[0] and address < mem[1]:
                 return mem
-        return None    
+        return None
 
     def is_mapped(self, address):
         if self.get_mapping(address) != None:
@@ -40,7 +40,7 @@ class ARM64UC_Emulator():
         s = b''
         while 1:
             b = self.uc.mem_read(at, 1)
-            at += 12
+            at += 1
             if b == b'\0':
                 return s
             s += b
