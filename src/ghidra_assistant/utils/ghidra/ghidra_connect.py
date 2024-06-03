@@ -109,14 +109,25 @@ class Ghidra:
     def _jaddr(self, addr):
         # The string that's fed to getAddress NEEDS to be hex for some godawful reason
         return self.address_factory.getAddress(hex(addr))
+    
+    def _jbytes(self, dat):
+        return bytes(dat)
+    
+    def startTransaction(self, name):
+        self.stopTransaction()
+        self.transaction = currentProgram.startTransaction(f"Coloring lines")
+        
+    def stopTransaction(self):
+        if hasattr(self, "transaction"):
+            currentProgram.endTransaction(self.transaction, True)
 
-    def set_background_color(self, addresses):
+    def set_background_color(self, addresses, color="java.awt.Color.YELLOW"):
         '''
         Highlight a list of addresses
         '''
         tr = currentProgram.startTransaction(f"Coloring lines")
         d = self.bridge.remote_eval("[currentProgram.getAddressFactory().getAddress(addr) for addr in addresses]", addresses=[hex(addr) for addr in addresses])
-        self.bridge.remote_eval("[setBackgroundColor(addr, java.awt.Color.YELLOW) for addr in d]", d=d)
+        self.bridge.remote_eval(f"[setBackgroundColor(addr, {color}) for addr in d]", d=d)
         currentProgram.endTransaction(tr, True)
 
     def clear_background_color(self):
@@ -264,6 +275,36 @@ class Ghidra:
         #name: unicode, start: ghidra.program.model.address.Address, fileBytes: ghidra.program.database.mem.FileBytes, offset: long, size: long, overlay: bool) -> ghidra.program.model.mem.MemoryBlock:
         self.memory.setBytes(toAddr(start), bytes(data))
         currentProgram.endTransaction(tr, True)
+        
+    def mmap_region(self, addr, name, size, read=True, write=True, execute=False):
+        tr = currentProgram.startTransaction(f"Mapping memory region {name} at {hex(addr)}")
+        self.memory.createInitializedBlock(name, toAddr(addr), size, 0, monitor, False)
+        block = self.memory.getBlock(toAddr(hex(addr)))
+        block.setPermissions(read, write, execute)
+        currentProgram.endTransaction(tr, True)
+        
+    def write_mem(self, addr, data):
+        '''
+        write data to memory, if region is available
+        '''
+        # check if address is in a block
+        block = self.get_memory_block(addr)
+        if block is None:
+            warn(f"Address {hex(addr)} is not in a block")
+            return
+        # check if len(data) is too big
+        if len(data) > block.getSize():
+            warn(f"Data is too big for block {block.name}")
+            return
+        tr = currentProgram.startTransaction(f"Writing memory at {hex(addr)}")
+        self.memory.setBytes(toAddr(addr), bytes(data))
+        currentProgram.endTransaction(tr, True)
+        
+    def get_memory_block(self, addr):
+        for block in self.memory.getBlocks():
+            if block.contains(toAddr(hex(addr))):
+                return block
+        return None
 
     def get_function_decompiled_code(self, func):
         # decompile the function and print the pseudo C

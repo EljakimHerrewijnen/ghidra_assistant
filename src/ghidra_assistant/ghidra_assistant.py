@@ -17,6 +17,12 @@ def main():
     '''
     info("Running tests")
     ga = GhidraAssistant()
+    
+    # Test colouring lines
+    # Generate a list of fake PC values from 0x4001ed94 to 0x4001ed94 + 0x1000
+    pc_values = [0x4001ed94 + i for i in range(0, 0x1000, 4)]
+    ga.ghidra.set_background_color(pc_values, "red")
+    
     dat = ga.ghidra.get_ghidra_memory_maps()
 
     # Test concrete device

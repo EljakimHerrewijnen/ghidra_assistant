@@ -8,6 +8,7 @@ from ...utils import *
 class ARM_Emulator:
     '''
         Class that will interact with the unicorn engine for emulating ARM code.
+        Supports both ARM and Thumb modes.
     '''
     def __init__(self, init_uc = True):
         if init_uc:
