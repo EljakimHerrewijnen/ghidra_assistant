@@ -22,7 +22,7 @@ class ARM64UC_Emulator():
 
     def setup_shellcode(self):
         self.sc = ShellcodeCrafter(self.ks, self.cs)
-        
+
     def get_mapping(self, address):
         for mem in self.uc.mem_regions():
             if address >= mem[0] and address < mem[1]:
@@ -33,7 +33,7 @@ class ARM64UC_Emulator():
         if self.get_mapping(address) != None:
             return True
         return False
-    
+
     def read_string(self, at):
         if at == 0:
             return b''
@@ -45,13 +45,13 @@ class ARM64UC_Emulator():
                 return s
             s += b
         return s
-    
+
     def write_ptr(self, at, ptr):
         return self.uc.mem_write(at, p32(ptr))
 
     def read_ptr(self, at):
         return u32(self.uc.mem_read(at, 4))
-    
+
     def add_breakpoint(self, at, target_fun):
         self.uc.hook_add(UC_HOOK_CODE, target_fun, None, at, at + 1)
 
@@ -106,7 +106,7 @@ class ARM64UC_Emulator():
     @sp.setter
     def sp(self, value):
         self.uc.reg_write(UC_ARM64_REG_SP, value)
-    
+
     @property
     def lr(self):
         return self.uc.reg_read(UC_ARM64_REG_LR)
@@ -114,7 +114,7 @@ class ARM64UC_Emulator():
     @lr.setter
     def lr(self, value):
         self.uc.reg_write(UC_ARM64_REG_LR, value)
-        
+
     @property
     def vbar_el1(self):
         return self.uc.reg_read(UC_ARM64_REG_VBAR_EL1)
@@ -122,7 +122,7 @@ class ARM64UC_Emulator():
     @vbar_el1.setter
     def vbar_el1(self, value):
         self.uc.reg_write(UC_ARM64_REG_VBAR_EL1, value)
-        
+
     @property
     def vbar_el2(self):
         return self.uc.reg_read(UC_ARM64_REG_VBAR_EL2)
@@ -130,7 +130,7 @@ class ARM64UC_Emulator():
     @vbar_el2.setter
     def vbar_el2(self, value):
         self.uc.reg_write(UC_ARM64_REG_VBAR_EL2, value)
-        
+
     @property
     def vbar_el3(self):
         return self.uc.reg_read(UC_ARM64_REG_VBAR_EL3)
@@ -138,7 +138,7 @@ class ARM64UC_Emulator():
     @vbar_el3.setter
     def vbar_el3(self, value):
         self.uc.reg_write(UC_ARM64_REG_VBAR_EL3, value)
-        
+
     @property
     def elr_el0(self):
         return self.uc.reg_read(UC_ARM64_REG_ELR_EL0)
@@ -146,7 +146,7 @@ class ARM64UC_Emulator():
     @elr_el0.setter
     def elr_el0(self, value):
         self.uc.reg_write(UC_ARM64_REG_ELR_EL0, value)
-        
+
     @property
     def elr_el1(self):
         return self.uc.reg_read(UC_ARM64_REG_ELR_EL1)
@@ -154,7 +154,7 @@ class ARM64UC_Emulator():
     @elr_el1.setter
     def elr_el1(self, value):
         self.uc.reg_write(UC_ARM64_REG_ELR_EL1, value)
-        
+
     @property
     def elr_el2(self):
         return self.uc.reg_read(UC_ARM64_REG_ELR_EL2)
@@ -162,7 +162,7 @@ class ARM64UC_Emulator():
     @elr_el2.setter
     def elr_el2(self, value):
         self.uc.reg_write(UC_ARM64_REG_ELR_EL2, value)
-        
+
     @property
     def elr_el3(self):
         return self.uc.reg_read(UC_ARM64_REG_ELR_EL3)
