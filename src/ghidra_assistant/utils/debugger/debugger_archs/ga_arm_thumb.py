@@ -10,6 +10,15 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
         self.ks = Ks(KS_MODE_ARM, KS_MODE_THUMB)
         self.sc = ShellcodeCrafterARMThumb(self.ks, self.cs)
         self.state = ARMThumb_Concrete_State(storage_addr, self)
+        
+    def memwrite_io(self, address, data):
+        assert len(data) < (0x20 - 12), "Data length is too long for IO write"
+        self.write("HWIO")
+        packet = struct.pack('<III', address, 0, len(data)) + data
+        # fill the block up to 0x20 bytes
+        packet += b"\x00" * (0x20 - len(packet))
+        self.write(packet)
+        self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
 
     def memdump_region(self, offset, size):
         '''

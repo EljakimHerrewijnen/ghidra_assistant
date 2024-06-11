@@ -111,6 +111,12 @@ class ConcreteDevice():
         Sync processor state from memory region to registers on device.
         '''
         raise NotImplemented
+    
+    def memwrite_io(self, address, data):
+        '''
+        Write some data byte by byte
+        '''
+        raise NotImplemented
 
     def memdump_region(self, offset, size):
         '''
@@ -194,6 +200,7 @@ class ConcreteDevice():
         self.read = self.arch_dbg.read
         self.write = self.arch_dbg.write
         self.memdump_region = self.arch_dbg.memdump_region
+        self.memwrite_io = self.arch_dbg.memwrite_io
         # self.memdump_region_small = self.arch_dbg.memdump_region_small
         self.memwrite_region = self.arch_dbg.memwrite_region
         self.get_debugger_location = self.arch_dbg.get_debugger_location
