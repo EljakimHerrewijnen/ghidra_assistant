@@ -115,7 +115,7 @@ class Ghidra:
     
     def startTransaction(self, name):
         self.stopTransaction()
-        self.transaction = currentProgram.startTransaction(f"Coloring lines")
+        self.transaction = currentProgram.startTransaction(name)
         
     def stopTransaction(self):
         if hasattr(self, "transaction"):
