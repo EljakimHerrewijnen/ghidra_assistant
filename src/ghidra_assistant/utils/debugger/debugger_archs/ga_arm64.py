@@ -30,6 +30,15 @@ class GA_arm64_debugger(BaseArch_debugger):
 
     def loadQ(self, address):
         return u64(self.memdump_region(address, 8))
+    
+    def memwrite_io(self, address, data):
+        assert len(data) < (0x20 - 12), "Data length is too long for IO write"
+        self.write("HWIO")
+        packet = struct.pack('<QI', address, len(data)) + data
+        # fill the block up to 0x20 bytes
+        packet += b"\x00" * (0x20 - len(packet))
+        self.write(packet)
+        self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
 
     def memdump_region(self, offset, size):
         '''
@@ -57,8 +66,12 @@ class GA_arm64_debugger(BaseArch_debugger):
                 self.write(b"ACK\x00")
             received += d
         if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            try:
+                # Some USB implementations require a read to clear the buffer??
+                self.read(0)
+            except:
+                pass
             self.write(b"ACK\x00")
-            # received += self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
         return received
 
     def memdump_region_small(self, offset, size):

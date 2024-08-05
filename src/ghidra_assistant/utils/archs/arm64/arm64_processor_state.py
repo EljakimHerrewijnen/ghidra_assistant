@@ -85,7 +85,7 @@ class ARM64_Concrete_State:
     '''
         Class that will interact with the concrete device for getting and writing the processor state.
     '''
-    def __init__(self, base_config_address : int, debugger : "GA_arm64_debugger", auto_sync=True, auto_sync_special=True) -> None:
+    def __init__(self, base_config_address : int, debugger : "GA_arm64_debugger", auto_sync=False, auto_sync_special=False) -> None:
         self.baddr = base_config_address
         self.debugger = debugger
         self.auto_sync = auto_sync

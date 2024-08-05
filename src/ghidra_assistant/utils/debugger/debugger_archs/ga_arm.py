@@ -35,6 +35,11 @@ class GA_arm_debugger(BaseArch_debugger):
                 self.write(b"ACK\x00")
             received += d
         if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            try:
+                # Some USB implementations require a read to clear the buffer??
+                self.read(0)
+            except:
+                pass
             self.write(b"ACK\x00")
         return received
 
