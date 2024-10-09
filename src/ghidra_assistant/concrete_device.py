@@ -73,7 +73,7 @@ class ConcreteDevice():
 
     def test_connection(self):
         self.write(b"PING")
-        d = self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        d = self.read(self.transmission_size)
         if d != b"PONG":
             warn("Invalid response from device: {d}")
         else:

@@ -18,7 +18,7 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
         # fill the block up to 0x20 bytes
         packet += b"\x00" * (0x20 - len(packet))
         self.write(packet)
-        self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        self.read(self.transmission_size)
 
     def memdump_region(self, offset, size):
         '''
@@ -37,15 +37,15 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
         mem_param = struct.pack('<III', offset, size, 0) #Send extra 4 bytes to fill the 12 byte buffer
         self.write(mem_param)
         received = b''
-        blk_sz = DEBUGGER_BLOCKSIZE_TRANSMISSION
+        blk_sz = self.transmission_size
         while len(received) < size:
-            if (remaining := size - len(received)) < DEBUGGER_BLOCKSIZE_TRANSMISSION:
+            if (remaining := size - len(received)) < self.transmission_size:
                 blk_sz = remaining
             d = self.read(blk_sz)
             if len(d) == blk_sz:
                 self.write(b"ACK\x00")
             received += d
-        if size >= DEBUGGER_BLOCKSIZE_TRANSMISSION:
+        if size >= self.transmission_size:
             try:
                 # Some USB implementations require a read to clear the buffer??
                 self.read(0)
@@ -70,13 +70,13 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
         self.write(mem_param)
 
         while len(data) > 0:
-            remaining = DEBUGGER_BLOCKSIZE_TRANSMISSION
-            if(len(data) < DEBUGGER_BLOCKSIZE_TRANSMISSION):
+            remaining = self.transmission_size
+            if(len(data) < self.transmission_size):
                 remaining = len(data)
             send = data[:remaining]
             data = data[remaining:]
             self.write(send)
-            message = self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+            message = self.read(self.transmission_size)
             if(message != b"OK"):
                 error("Error on writing data to device!")
                 return
@@ -85,7 +85,7 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
 
     def get_debugger_location(self):
         self.write(b"SELF")
-        d = self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        d = self.read(self.transmission_size)
         return struct.unpack("<I", d)[0]
 
     def disable_mmu(self):

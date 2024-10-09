@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>plugin</name>
-	<comment>Project plugin created by Buildship.</comment>
+	<name>ga_plugin</name>
+	<comment>Ghidra Assistant plugin</comment>
 	<projects>
 	</projects>
 	<buildSpec>

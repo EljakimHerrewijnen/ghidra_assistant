@@ -142,8 +142,7 @@ class Ghidra:
 
     @cursor.setter
     def cursor(self, addr, goto=True):
-        self.listing_pnl.setCursorPosition(ghidra.program.util.ProgramLocation(currentProgram,
-                                                                                       self._jaddr(addr)))
+        self.listing_pnl.setCursorPosition(ghidra.program.util.ProgramLocation(currentProgram, self._jaddr(addr)))
         if goto:
             self.listing_pnl.goTo(self._jaddr(addr))
 
@@ -310,6 +309,17 @@ class Ghidra:
         # decompile the function and print the pseudo C
         results = self.ifc.decompileFunction(func, 0, ghidra.util.task.ConsoleTaskMonitor())
         return results.getDecompiledFunction().getC()
+    
+    def get_all_structures(self):
+        # self.data_type_manager.addDataType()
+        '''
+        data_type = StructureDataType(category.getCategoryPath(), struct_name, 0)
+        data_type.add(int32_t, 4, "len", None)
+        data_type.add(int32_t, 4, "reserved", None)
+
+        return category.addDataType(data_type, None)
+        '''
+        return self.data_type_manager.getAllStructures()
 
     def rename_function(self, addr, name):
         '''
@@ -359,31 +369,8 @@ class Ghidra:
             # GA_Code_block()
 
     def get_all_functions_r(self):
-        # code = self.bridge.remote_eval("""
-        #     [
-        #         (
-        #             f.name,
-        #             f.body
-
-        #         ) for f in currentProgram.getFunctionManager().getFunctions(True)
-        #     ]""")
-        # code2 = self.bridge.remote_eval("""
-        #     [
-
-        #         (
-        #             (
-        #                 (unit.getAddress(), unit.toString())
-        #                 for unit in currentProgram.getListing().getCodeUnits(addrset, True)
-        #             )
-        #             for addrset in f.body
-        #         )
-        #         for f in currentProgram.getFunctionManager().getFunctions(True)
-        #     ]
-        # """)
-
         code2 = self.bridge.remote_eval("""
             [
-
                 (
 
                 )

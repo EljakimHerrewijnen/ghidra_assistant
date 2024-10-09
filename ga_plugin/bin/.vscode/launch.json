@@ -7,7 +7,7 @@
         {
             "type": "java",
             "name": "Ghidra Debug",
-            "projectName": "skeleton",
+            "projectName": "ga_plugin",
             "request": "launch",
             "mainClass": "ghidra.GhidraLauncher",
             "args": "ghidra.GhidraRun",
