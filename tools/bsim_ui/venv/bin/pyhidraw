@@ -1,8 +1,0 @@
-#!/home/eljakim/Source/ghidra_assistent/source2/tools/bsim_ui/venv/bin/python3
-# -*- coding: utf-8 -*-
-import re
-import sys
-from pyhidra.gui import _gui
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(_gui())
