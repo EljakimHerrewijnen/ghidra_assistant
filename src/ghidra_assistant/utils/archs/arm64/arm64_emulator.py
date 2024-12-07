@@ -4,6 +4,7 @@ from capstone import *
 from keystone import *
 from ..asm_utils import ShellcodeCrafter
 from ...utils import *
+from ....concrete_device import ConcreteDevice
 
 class ARM64UC_Emulator():
     def __init__(self, init_uc = True) -> None:
@@ -66,6 +67,35 @@ class ARM64UC_Emulator():
         for instruction in self.md.disasm(self.uc.mem_read(address, dlen), address):
             instructions.append(instruction)
         return instructions
+    
+    def install_debugger(self, debugger : ConcreteDevice):
+        self.debugger = debugger
+        
+    def hw_itm_handle(self, access, address, size, value):
+        '''
+        Generic HWITM function that will forward all memory read/write to the debugger and write the response to the emulator.
+        '''
+        assert hasattr(self, "debugger"), "Debugger not installed!"
+
+        try:
+            if access == UC_MEM_WRITE:
+                if size == 4:
+                    self.debugger.memwrite_region(address, p32(value))
+                elif size == 1:
+                    self.debugger.memwrite_io(address, p8(value))
+                else:
+                    raise Exception("Unhandled write!")
+            elif access == UC_MEM_READ:
+                if size == 1:
+                    pass
+                self.uc.mem_write(address, self.debugger.memdump_region(address, size))
+            else:
+                raise Exception("Not handled!")
+        except Exception as e:
+            print(e)
+            sys.exit(0)
+            pass
+        return True
 
     def print_ctx(self, print_f = info):
         pc = self.uc.reg_read(UC_ARM64_REG_PC)

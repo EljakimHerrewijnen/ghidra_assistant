@@ -17,6 +17,7 @@ class ConcreteDevice():
         self.ga_vbar_location = 0x101000
         self.ga_storage_location = 0x102000
         self.ga_stack_location = 0x103000
+        self.transmission_size = 0x200 # Default, change if needed.
 
         # Is different than ga_debugger_location because it is a direct reference to the debugger_main function
         self.debugger_main = self.ga_debugger_location

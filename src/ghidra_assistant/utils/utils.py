@@ -106,6 +106,11 @@ def u16(inbytes):
 def u8(inbytes):
     return ord(inbytes[:1])
 
+def p8(i):
+    """p8(i) -> str
+    Pack 8 bits integer
+    """
+    return struct.pack('B', i)
 
 def p32(i):
     """p32(i) -> str
