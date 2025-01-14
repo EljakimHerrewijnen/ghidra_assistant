@@ -6,10 +6,11 @@ if typing.TYPE_CHECKING:
     from concrete_device import ConcreteDevice
 
 class BaseArch_debugger():
-    def __init__(self, vector_table_addr, debugger_addr, storage_addr) -> None:
+    def __init__(self, vector_table_addr, debugger_addr, storage_addr, transmission_size=DEBUGGER_BLOCKSIZE_TRANSMISSION) -> None:
         self.vector_table_addr = vector_table_addr
         self.debugger_addr = debugger_addr
         self.storage_addr = storage_addr
+        self.transmission_size=transmission_size
         self.sc = ShellcodeCrafter(None, None)
 
     def read_vbar(self):

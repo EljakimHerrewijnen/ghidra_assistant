@@ -24,7 +24,7 @@ def main():
     ga.ghidra.set_background_color(pc_values, "red")
     
     dat = ga.ghidra.get_ghidra_memory_maps()
-
+    pass
     # Test concrete device
 
     # Test emulators

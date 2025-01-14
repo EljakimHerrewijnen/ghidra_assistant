@@ -17,6 +17,7 @@ class ConcreteDevice():
         self.ga_vbar_location = 0x101000
         self.ga_storage_location = 0x102000
         self.ga_stack_location = 0x103000
+        self.transmission_size = 0x200 # Default, change if needed.
 
         # Is different than ga_debugger_location because it is a direct reference to the debugger_main function
         self.debugger_main = self.ga_debugger_location
@@ -73,7 +74,7 @@ class ConcreteDevice():
 
     def test_connection(self):
         self.write(b"PING")
-        d = self.read(DEBUGGER_BLOCKSIZE_TRANSMISSION)
+        d = self.read(self.transmission_size)
         if d != b"PONG":
             warn("Invalid response from device: {d}")
         else:
@@ -109,6 +110,12 @@ class ConcreteDevice():
     def sync_state(self):
         '''
         Sync processor state from memory region to registers on device.
+        '''
+        raise NotImplemented
+    
+    def memwrite_io(self, address, data):
+        '''
+        Write some data byte by byte
         '''
         raise NotImplemented
 
@@ -194,6 +201,7 @@ class ConcreteDevice():
         self.read = self.arch_dbg.read
         self.write = self.arch_dbg.write
         self.memdump_region = self.arch_dbg.memdump_region
+        self.memwrite_io = self.arch_dbg.memwrite_io
         # self.memdump_region_small = self.arch_dbg.memdump_region_small
         self.memwrite_region = self.arch_dbg.memwrite_region
         self.get_debugger_location = self.arch_dbg.get_debugger_location
