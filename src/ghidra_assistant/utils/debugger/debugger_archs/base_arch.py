@@ -13,6 +13,9 @@ class BaseArch_debugger():
         self.transmission_size=transmission_size
         self.sc = ShellcodeCrafter(None, None)
 
+    def create_debugger_vbar() -> bytes:
+        return NotImplemented()
+
     def read_vbar(self):
         return NotImplemented()
 

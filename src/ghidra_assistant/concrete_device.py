@@ -8,7 +8,7 @@ class ConcreteDevice():
     '''
         Object that handles the communication between a 'real' target device and the GA
     '''
-    def __init__(self, target_dev : str = None, connectga=False) -> None:
+    def __init__(self, target_dev : str = None, connectga=False):
         if connectga:
             self.connect_GA()
         # SET THESE! TODO ADD CHECKS
@@ -72,33 +72,35 @@ class ConcreteDevice():
         if hasattr(self.hooks_module, "device_main"):
             self.device_main = self.hooks_module.device_main
 
-    def test_connection(self):
+    def test_connection(self) -> None:
         self.write(b"PING")
         d = self.read(self.transmission_size)
         if d != b"PONG":
-            warn("Invalid response from device: {d}")
+            warning("Invalid response from device: {d}")
         else:
             ok("Connection is working")
 
-    def boot_glitcher(self):
+    def boot_glitcher(self) -> bool:
         self.write(b"GLIT")
         ret = self.read(4)
         if ret != b"GlAs":
             error("Failed to boot into glitch handler")
+            return True
+        return False
 
-    def get_stub_location(self):
+    def get_stub_location(self) -> int:
         return NotImplemented
 
-    def get_debugger_location(self):
+    def get_debugger_location(self) -> int:
         return NotImplemented
 
-    def write(self, data):
+    def write(self, data) -> None:
         return NotImplemented
 
-    def read(self, len):
+    def read(self, len) -> bytes:
         return NotImplemented
 
-    def device_main(self, args):
+    def device_main(self, args) -> None:
         return NotImplemented
 
     def dump_processor_state(self):

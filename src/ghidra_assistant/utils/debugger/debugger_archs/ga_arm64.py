@@ -144,12 +144,13 @@ class GA_arm64_debugger(BaseArch_debugger):
         d = self.read(self.transmission_size)
         return struct.unpack("<Q", d)[0]
 
-    def create_debugger_vbar(self, register="X15"):
+    def create_debugger_vbar(self, register="X15", disable_mmu=False):
         '''
         Creates branches to the debugger and stores the exception ID. By default X15 is corrupted.
         '''
         if(self.vector_table_addr % 0x800 != 0):
             error("Address not 2k alligned")
+            return b""
 
         vbar = b""
         exception_id = 0
@@ -162,8 +163,24 @@ class GA_arm64_debugger(BaseArch_debugger):
                     return b""
                 vbar += self.sc.nop_ins * (remaining // 4)
 
-            # Write identifier for the exception ID
-            id_shell = f'''
+            id_shell = ""
+            # First check if we need to disable the MMU
+            if disable_mmu:
+                # Disable MMU
+                # Clear M bit to disable MMU
+                # Clear C bit to disable Data Cache
+                # Clear I bit to disable Instruction Cache
+                id_shell += f'''
+                mrs {register}, SCTLR_EL3
+                bic {register}, {register}, #(1 << 0) 
+                bic {register}, {register}, #(1 << 2) 
+                bic {register}, {register}, #(1 << 12)
+                msr SCTLR_EL3, {register}
+                '''
+
+            # Load the storage address, store X15 and the exception ID, next jump to the debugger.
+            # If disable_mmu is used, x15 will be corrupted
+            id_shell += f'''
                 ldr {register}, STORAGE_addr
                 STR X0, [X15, #4072]
                 MOV X0, #{hex(exception_id)}
