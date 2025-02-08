@@ -109,14 +109,14 @@ class Ghidra:
     def _jaddr(self, addr):
         # The string that's fed to getAddress NEEDS to be hex for some godawful reason
         return self.address_factory.getAddress(hex(addr))
-    
+
     def _jbytes(self, dat):
         return bytes(dat)
-    
+
     def startTransaction(self, name):
         self.stopTransaction()
         self.transaction = currentProgram.startTransaction(name)
-        
+
     def stopTransaction(self):
         if hasattr(self, "transaction"):
             currentProgram.endTransaction(self.transaction, True)
@@ -274,14 +274,14 @@ class Ghidra:
         #name: unicode, start: ghidra.program.model.address.Address, fileBytes: ghidra.program.database.mem.FileBytes, offset: long, size: long, overlay: bool) -> ghidra.program.model.mem.MemoryBlock:
         self.memory.setBytes(toAddr(start), bytes(data))
         currentProgram.endTransaction(tr, True)
-        
+
     def mmap_region(self, addr, name, size, read=True, write=True, execute=False):
         tr = currentProgram.startTransaction(f"Mapping memory region {name} at {hex(addr)}")
         self.memory.createInitializedBlock(name, toAddr(addr), size, 0, monitor, False)
         block = self.memory.getBlock(toAddr(hex(addr)))
         block.setPermissions(read, write, execute)
         currentProgram.endTransaction(tr, True)
-        
+
     def write_mem(self, addr, data):
         '''
         write data to memory, if region is available
@@ -298,7 +298,7 @@ class Ghidra:
         tr = currentProgram.startTransaction(f"Writing memory at {hex(addr)}")
         self.memory.setBytes(toAddr(addr), bytes(data))
         currentProgram.endTransaction(tr, True)
-        
+
     def get_memory_block(self, addr):
         for block in self.memory.getBlocks():
             if block.contains(toAddr(hex(addr))):
@@ -309,7 +309,7 @@ class Ghidra:
         # decompile the function and print the pseudo C
         results = self.ifc.decompileFunction(func, 0, ghidra.util.task.ConsoleTaskMonitor())
         return results.getDecompiledFunction().getC()
-    
+
     def get_all_structures(self):
         # self.data_type_manager.addDataType()
         '''
