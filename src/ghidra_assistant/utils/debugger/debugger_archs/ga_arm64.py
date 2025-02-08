@@ -27,6 +27,7 @@ class GA_arm64_debugger(BaseArch_debugger):
         self.vbar_el3_hijacked = 0x0
         self.vbar_el3_original = 0x146a9000
         self.state = ARM64_Concrete_State(storage_addr, self)
+        # TODO add stepper?
 
     def loadQ(self, address):
         return u64(self.memdump_region(address, 8))

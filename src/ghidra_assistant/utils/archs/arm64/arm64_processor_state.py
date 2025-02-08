@@ -6,6 +6,7 @@ from .misc.MMU.pagetable_arm64 import PagetableARM64_el3
 from .misc.MMU.arm64_mmu import ARM64_MMU
 from .misc.tcr_el.tcr_el3 import TCR_EL3 as R_TCR_EL3
 from .misc.MMU.mair_eln import MAIR_EL3 as R_MAIR_EL3
+from .misc.nzcv import NZCV_Register
 
 if typing.TYPE_CHECKING:
     from utils.debugger.debugger_archs.ga_arm64 import GA_arm64_debugger
@@ -69,6 +70,7 @@ MAIR_EL3        = 53
 MAIR_EL2        = 54
 MAIR_EL1        = 55
 CURRENT_EL      = 56
+NZCV            = 57
 
 
 # Debugger registers
@@ -126,6 +128,12 @@ class ARM64_Concrete_State:
 
     def read_config(self, config):
         return struct.unpack("<Q", self.debugger.memdump_region(self.config_addr(config), 8))[0]
+    
+    def mem_read(self, address, length) -> bytes:
+        return self.debugger.memdump_region(address, length)
+    
+    def mem_write(self, address, data):
+        self.debugger.memwrite_region(address, data)
 
     @property
     def DEBUGGER_JUMP(self):
@@ -393,8 +401,27 @@ class ARM64_Concrete_State:
 
     @CURRENT_EL.setter
     def CURRENT_EL(self, value : bytes):
-        warn("CurrentEL does nothing currently, not synced in debugger")
+        warn("CurrentEL does nothing, not synced in debugger")
         self.write_config(CURRENT_EL, value)
+        
+    # ================ NZCV ================
+    @property
+    def NZCV(self):
+        return self.read_config(NZCV)
+
+    @NZCV.setter
+    def NZCV(self, value : bytes):
+        self.write_config(NZCV, value)
+        
+    @property
+    def R_NZCV(self):
+        return NZCV_Register(self.NZCV)
+    
+    @R_NZCV.setter
+    def R_NZCV(self, value : int):
+        self.NZCV = struct.pack("<Q", value)
+        
+    # ================ NZCV ================
 
     @property
     def LR(self):
