@@ -4,6 +4,22 @@ import importlib
 from .utils.utils import *
 from .utils.debugger.debugger_archs.base_arch import BaseArch_debugger
 
+class Mem:
+    def __init__(self, cd : "ConcreteDevice"):
+        self.cd = cd 
+    
+    def __getitem__(self, key):
+        # Check if 'key' is a slice object
+        if isinstance(key, slice):
+            # Extract the start, stop, and step attributes of the slice
+            start = key.start
+            size = key.stop - start
+            
+            return self.cd.memdump_region(start, size)
+        else:
+            # Handle single item access if needed
+            return self.cd.memdump_region(key, 1)
+
 class ConcreteDevice():
     '''
         Object that handles the communication between a 'real' target device and the GA
@@ -18,6 +34,7 @@ class ConcreteDevice():
         self.ga_storage_location = 0x102000
         self.ga_stack_location = 0x103000
         self.transmission_size = 0x200 # Default, change if needed.
+        self.mem = Mem(self)
 
         # Is different than ga_debugger_location because it is a direct reference to the debugger_main function
         self.debugger_main = self.ga_debugger_location

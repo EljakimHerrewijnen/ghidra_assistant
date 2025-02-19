@@ -16,6 +16,42 @@ class SCTLR_EL3(BitHelper):
     '''
     def __init__(self, value: int) -> None:
         super().__init__(value)
+        
+    @property
+    def dssbs(self):
+        '''
+        if FEAT_DSSBS
+            Enables the Data Speculation Barrier at EL3.
+        '''
+        return self.is_set(DSSBS_SCTLR_EL3)
+    
+    @dssbs.setter
+    def dssbs(self, value):
+        self.set_bit_value(DSSBS_SCTLR_EL3, value)
+        
+    @property
+    def tmt(self):
+        '''
+        if FEAT_TMT
+            Enables the Topology Modification Table at EL3.
+        '''
+        return self.is_set(TMT_SCTLR_EL3)
+    
+    @tmt.setter
+    def tmt(self, value):
+        self.set_bit_value(TMT_SCTLR_EL3, value)
+        
+    @property
+    def bp(self):
+        '''
+        if FEAT_BP
+            Enables the Branch Prediction at EL3.
+        '''
+        return self.is_set(TMT_SCTLR_EL3)
+    
+    @bp.setter
+    def bp(self, value):
+        self.set_bit_value(TMT_SCTLR_EL3, value)
 
     @property
     def tme(self):

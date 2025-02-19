@@ -10,6 +10,7 @@ class ARM64Stepper:
         self.pc = pc
         self.debug = debug
         self.saved_pcs = {}
+        self.sc.cs.detail = True #https://github.com/capstone-engine/capstone/issues/1275
         
     def get_next_addr(self) -> int:
         c_insn = self.cd.memdump_region(self.pc, 4)
