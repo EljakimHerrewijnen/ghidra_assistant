@@ -31,10 +31,10 @@ class GA_arm64_debugger(BaseArch_debugger):
 
     def loadQ(self, address):
         return u64(self.memdump_region(address, 8))
-    
+
     def memwrite_io(self, address, data):
         assert len(data) < (0x20 - 12), "Data length is too long for IO write"
-        self.write("HWIO")
+        self.write(b"HWIO")
         packet = struct.pack('<QI', address, len(data)) + data
         # fill the block up to 0x20 bytes
         packet += b"\x00" * (0x20 - len(packet))
@@ -173,8 +173,8 @@ class GA_arm64_debugger(BaseArch_debugger):
                 # Clear I bit to disable Instruction Cache
                 id_shell += f'''
                 mrs {register}, SCTLR_EL3
-                bic {register}, {register}, #(1 << 0) 
-                bic {register}, {register}, #(1 << 2) 
+                bic {register}, {register}, #(1 << 0)
+                bic {register}, {register}, #(1 << 2)
                 bic {register}, {register}, #(1 << 12)
                 msr SCTLR_EL3, {register}
                 '''

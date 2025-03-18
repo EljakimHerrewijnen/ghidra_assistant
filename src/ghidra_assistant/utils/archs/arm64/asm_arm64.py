@@ -43,11 +43,11 @@ class ShellcodeCrafterARM64(ShellcodeCrafter):
         code = self.ks.asm(shellcode, addr=offset, as_bytes=True)[0]
         return code
 
-    def branch_absolute(self, address, register = "x15", branch_ins="blr"):
+    def branch_absolute(self, address, register = "x15", branch_ins="br"):
         '''
         For doing an absolute branch in ARM.
         Creates a shellcode blob that will load the target address into the supplied register and branch to it.
-        
+
         '''
         shell = f"""
             ldr {register}, JUMP_addr

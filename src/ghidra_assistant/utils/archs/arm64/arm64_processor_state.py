@@ -71,6 +71,11 @@ MAIR_EL2        = 54
 MAIR_EL1        = 55
 CURRENT_EL      = 56
 NZCV            = 57
+DAIF            = 58
+TTBR1_EL1       = 59
+VTCR_EL2        = 60
+VTTBR_EL2       = 61
+HCR_EL2         = 62
 
 
 # Debugger registers
@@ -92,7 +97,10 @@ class ARM64_Concrete_State:
         self.debugger = debugger
         self.auto_sync = auto_sync
         self.auto_sync_special = auto_sync_special
-        self.mmu = ARM64_MMU(debugger)
+        self.mmu = ARM64_MMU(self)
+
+    def loadQ(self, addr):
+        return struct.unpack("<Q", self.debugger.memdump_region(addr, 8))[0]
 
     def config_addr(self, config):
         return self.baddr + config * 8
@@ -123,15 +131,27 @@ class ARM64_Concrete_State:
         """
         return state
 
+    def get_special(self):
+        special_state = f"""
+            VBAR_EL3: 0x{self.VBAR_EL3:16x}\tVBAR_EL2: 0x{self.VBAR_EL2:16x}\tVBAR_EL1: 0x{self.VBAR_EL1:16x}
+            TTBR0_EL3: 0x{self.TTBR0_EL3:16x}\tTTBR0_EL2: 0x{self.TTBR0_EL2:16x}\tTTBR0_EL1: 0x{self.TTBR0_EL1:16x}
+            SCTLR_EL3: 0x{self.SCTLR_EL3:16x}\tSCTLR_EL2: 0x{self.SCTLR_EL2:16x}\tSCTLR_EL1: 0x{self.SCTLR_EL1:16x}
+            TCR_EL3: 0x{self.TCR_EL3:16x}\tTCR_EL2: 0x{self.TCR_EL2:16x}\tTCR_EL1: 0x{self.TCR_EL1:16x}
+            VTCR_EL2: 0x{self.VTCR_EL2:16x}\tVTTBR_EL2: 0x{self.VTTBR_EL2:16x}
+            ELR_EL3: 0x{self.ELR_EL3:16x}\tELR_EL2: 0x{self.ELR_EL2:16x}\tELR_EL1: 0x{self.ELR_EL1:16x}
+            current_el: 0x{self.R_CURRENT_EL.get_exception_level()}
+        """
+        return special_state
+
     def print_ctx(self):
         p_info(self.get_ctx())
 
     def read_config(self, config):
         return struct.unpack("<Q", self.debugger.memdump_region(self.config_addr(config), 8))[0]
-    
+
     def mem_read(self, address, length) -> bytes:
         return self.debugger.memdump_region(address, length)
-    
+
     def mem_write(self, address, data):
         self.debugger.memwrite_region(address, data)
 
@@ -241,6 +261,14 @@ class ARM64_Concrete_State:
     @TTBR0_EL1.setter
     def TTBR0_EL1(self, value : bytes):
         self.write_config(TTBR0_EL1, value)
+
+    @property
+    def TTBR1_EL1(self):
+        return self.read_config(TTBR1_EL1)
+
+    @TTBR1_EL1.setter
+    def TTBR1_EL1(self, value : bytes):
+        self.write_config(TTBR1_EL1, value)
     # ================ TTBR0_EL ================
 
     # ================ SCTLR_EL ================
@@ -330,6 +358,32 @@ class ARM64_Concrete_State:
     def TCR_EL1(self, value : bytes):
         self.write_config(TCR_EL1, value)
 
+    @property
+    def VTCR_EL2(self):
+        return self.read_config(VTCR_EL2)
+
+    @VTCR_EL2.setter
+    def VTCR_EL2(self, value : bytes):
+        self.write_config(VTCR_EL2, value)
+
+    # TODO make this a class
+
+    @property
+    def VTTBR_EL2(self):
+        return self.read_config(VTTBR_EL2)
+
+    @VTTBR_EL2.setter
+    def VTTBR_EL2(self, value : bytes):
+        self.write_config(VTTBR_EL2, value)
+
+    @property
+    def HCR_EL2(self):
+        return self.read_config(HCR_EL2)
+
+    @HCR_EL2.setter
+    def HCR_EL2(self, value : bytes):
+        self.write_config(HCR_EL2, value)
+
     # ================ TCR_EL ================
 
     # ================ ELR_EL ================
@@ -403,7 +457,7 @@ class ARM64_Concrete_State:
     def CURRENT_EL(self, value : bytes):
         warn("CurrentEL does nothing, not synced in debugger")
         self.write_config(CURRENT_EL, value)
-        
+
     # ================ NZCV ================
     @property
     def NZCV(self):
@@ -412,16 +466,28 @@ class ARM64_Concrete_State:
     @NZCV.setter
     def NZCV(self, value : bytes):
         self.write_config(NZCV, value)
-        
+
     @property
     def R_NZCV(self):
         return NZCV_Register(self.NZCV)
-    
+
     @R_NZCV.setter
     def R_NZCV(self, value : int):
         self.NZCV = struct.pack("<Q", value)
-        
+
     # ================ NZCV ================
+
+    # ================ DAIF ================
+    @property
+    def DAIF(self):
+        return self.read_config(DAIF)
+
+    @DAIF.setter
+    def DAIF(self, value : bytes):
+        self.write_config(DAIF, value)
+
+    # TODO make this a class
+    # ================ DAIF ================
 
     @property
     def LR(self):

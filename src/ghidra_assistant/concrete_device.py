@@ -6,19 +6,31 @@ from .utils.debugger.debugger_archs.base_arch import BaseArch_debugger
 
 class Mem:
     def __init__(self, cd : "ConcreteDevice"):
-        self.cd = cd 
-    
+        self.cd = cd
+
     def __getitem__(self, key):
         # Check if 'key' is a slice object
         if isinstance(key, slice):
             # Extract the start, stop, and step attributes of the slice
             start = key.start
             size = key.stop - start
-            
+
             return self.cd.memdump_region(start, size)
         else:
             # Handle single item access if needed
             return self.cd.memdump_region(key, 1)
+
+    def __setitem__(self, key, value):
+        # Check if 'key' is a slice object
+        if isinstance(key, slice):
+            # Extract the start, stop, and step attributes of the slice
+            start = key.start
+            size = key.stop - start
+
+            return self.cd.memwrite_region(start, value, True)
+        else:
+            # Handle single item access if needed
+            return self.cd.memwrite_region(key, value, True)
 
 class ConcreteDevice():
     '''
@@ -131,7 +143,7 @@ class ConcreteDevice():
         Sync processor state from memory region to registers on device.
         '''
         raise NotImplemented
-    
+
     def memwrite_io(self, address, data):
         '''
         Write some data byte by byte

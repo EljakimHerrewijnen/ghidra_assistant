@@ -4,6 +4,7 @@ from ....bit_helper import BitHelper
 MMU_SCTLR_EL1       = 0
 A_SCTLR_EL1         = 1
 C_SCTLR_EL1         = 2
+I_SCTLR_EL1         = 12
 
 class SCTLR_EL1(BitHelper):
     '''
@@ -54,3 +55,15 @@ class SCTLR_EL1(BitHelper):
     @c.setter
     def c(self, value):
         self.set_bit_value(C_SCTLR_EL1, value)
+
+    @property
+    def i(self):
+        '''
+        Instruction cacheability
+        0: All instruction fetches from Normal memory to EL1 are Non-cacheable.
+        '''
+        return self.is_set(I_SCTLR_EL1)
+
+    @i.setter
+    def i(self, value):
+        self.set_bit_value(I_SCTLR_EL1, value)
