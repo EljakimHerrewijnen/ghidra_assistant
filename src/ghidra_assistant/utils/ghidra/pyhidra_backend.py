@@ -6,7 +6,7 @@ if typing.TYPE_CHECKING:
     import ghidra
     from ghidra.ghidra_builtins import *
 
-class PyHidra():
+class PyHidraBackend():
     def __init__(self) -> None:
         pyhidra.start()
         from ghidra.app.util.headless import HeadlessAnalyzer

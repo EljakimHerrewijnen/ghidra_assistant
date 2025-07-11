@@ -4,3 +4,5 @@ ghidra_bridge
 pyhidra
 capstone
 keystone-engine
+ghidra-stubs
+fastmcmp
