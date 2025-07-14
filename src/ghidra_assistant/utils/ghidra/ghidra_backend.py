@@ -1,3 +1,5 @@
+import typing, hashlib, struct
+
 class GhidraFunctionBasic():
     def __init__(self, address: str, name: str, args: list = None, return_type: str = None):
         self.address = address
@@ -25,16 +27,33 @@ class GhidraFunctionBasic():
         return f"<GhidraFunction address={self.address} name={self.name} prototype={self.prototype}>"
 
 class GhidraFunction(GhidraFunctionBasic):
-    def __init__(self, address, name, args, return_type, raw_bytes, size, disassembly):
+    def __init__(self, address, name, args, return_type, raw_bytes, size, disassembly, decompiled_code, incoming_functions, outgoing_functions):
         """
         Initialize a GhidraFunction with additional attributes.
         """
         self.raw_bytes = raw_bytes
         self.size = size
         self.disassembly = disassembly
+        self.decompiled_code = decompiled_code
+        self.incoming_functions = incoming_functions
+        self.outgoing_functions = outgoing_functions
 
         # Initialize the base class with address, name, args, and return_type
         super().__init__(address, name, args, return_type)
+
+    @property
+    def unique_id(self) -> str:
+        """
+        Generate a unique identifier for the function based on its address, size and raw bytes.
+        """
+        return hashlib.sha256(self.raw_bytes + self.address.encode() + struct.pack("<Q", self.size)).hexdigest()
+
+    @property
+    def function_hash(self) -> str:
+        """
+        Generate a hash of the function's raw bytes.
+        """
+        return hashlib.sha256(self.raw_bytes).hexdigest()
 
 
 class Mem:
@@ -70,16 +89,26 @@ class GhidraBackend:
     def __init__(self):
         pass
 
-    # @property
-    # def functions(self) -> list[GhidraFunctionBasic]:
-    #     raise NotImplementedError("This method should be implemented by subclasses.")
+    if typing.TYPE_CHECKING: # Only for type checking, not at runtime
+        @property
+        def functions(self) -> list[GhidraFunctionBasic]:
+            raise NotImplementedError("This method should be implemented by subclasses.")
 
-    # def get_function(self, basicFunction : GhidraFunctionBasic) -> GhidraFunction:
-    #     raise NotImplementedError("This method should be implemented by subclasses.")
+        def get_function(self, basicFunction : GhidraFunctionBasic) -> GhidraFunction:
+            raise NotImplementedError("This method should be implemented by subclasses.")
 
-    # def get_all_functions(self) -> list[GhidraFunction]:
-    #     raise NotImplementedError("This method should be implemented by subclasses.")
+        @property
+        def all_functions_detailed(self) -> list[GhidraFunction]:
+            raise NotImplementedError("This method should be implemented by subclasses.")
 
-    # @property
-    # def cursor(self) -> int:
-    #     raise NotImplementedError("This method should be implemented by subclasses.")
+        @property
+        def cursor(self) -> int:
+            raise NotImplementedError("This method should be implemented by subclasses.")
+
+        @property
+        def mem(self) -> Mem:
+            raise NotImplementedError("This method should be implemented by subclasses.")
+
+
+
+
