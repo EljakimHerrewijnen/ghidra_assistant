@@ -1,18 +1,42 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name = "ghidra_assistant"
-version = "0.0.1"
+dynamic = ["version"]
 authors = [
-  { name="Eljakim Herrewijnen", email="e.herrewijnen@gmail.com" },
+    { name = "Eljakim Herrewijnen", email = "e.herrewijnen@gmail.com" },
 ]
-description = "Package to assist ghidra"
+description = "Assistant for ghidra"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent, Linux preferred",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "tqdm",
+    "ghidra_bridge",
+    "pyhidra",
+    "capstone",
+    "keystone-engine",
+    "fastmcp",
+]
+license = {text = "MIT"}
+
+[tool.pdm]
+package-dir = "src"
+distribution = true
+
+[tool.pdm.version]
+source = "file"
+path = "src/ghidra_assistant/__init__.py"
+
+[tool.pdm.dev-dependencies]
+dev = [
+  "ghidra-stubs",
 ]
 
+[project.scripts]
+ghidra-assistant = "ghidra_assistant.ghidra_assistant:main"

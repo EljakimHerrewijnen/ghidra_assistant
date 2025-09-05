@@ -1,21 +1,31 @@
 # Ghidra Assistant
-Contains lots of bugs!
+**Contains lots of bugs!**
 
-## Setup
+This is the result of several scripts merged into a single package that I reuse often. Usually in combination with my [Gupje](https://github.com/EljakimHerrewijnen/Gupje) debugger and [ghidra](https://github.com/NationalSecurityAgency/ghidra).
+
+## Development with PDM
+This project uses PDM for packaging and dependency management.
+
+- Install PDM (one-time):
+	- Linux/macOS: `curl -sSL https://pdm-project.org/install-pdm.py | python3 -`
+	- Or via pipx: `pipx install pdm`
+
+- Create and sync the environment:
 ```bash
-pip install build
+pdm sync -d
 ```
 
-## Building
-To build the GA
+- Run the package (module):
 ```bash
-pip install build
-python3 -m build
+pdm run python -m ghidra_assistant.ghidra_assistant
 ```
 
-Next you can install the GA into your venv by:
-
+- Use the console script:
+```bash
+pdm run ghidra-assistant
 ```
-source venv/bin/activate
-python3 -m pip install dist/ghidra_assistant-0.0.1-py3-none-any.whl
+
+- Build wheels/sdist:
+```bash
+pdm build
 ```

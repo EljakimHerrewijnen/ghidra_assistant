@@ -15,6 +15,9 @@ class Ghidra(GhidraBackend):
         elif backend == 'mcp':
             from .mcp_backend import MCPBackend
             self.backend = MCPBackend()
+        elif backend == 'mcp_hydra':
+            from .mcp_hydra import MCPHydraBackend
+            self.backend = MCPHydraBackend()
         elif backend == 'pyhidra':
             from .pyhidra_backend import PyHidraBackend
             self.backend = PyHidraBackend()
