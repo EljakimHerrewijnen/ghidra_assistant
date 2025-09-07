@@ -46,3 +46,12 @@ class Ghidra(GhidraBackend):
             setattr(self.backend, key, value)
         else:
             super().__setattr__(key, value)
+
+    @property
+    def cursor(self) -> int:
+        """
+        Return the cursor for the current backend.
+        """
+        return self.backend.cursor
+
+    

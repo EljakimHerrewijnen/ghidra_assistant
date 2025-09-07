@@ -23,7 +23,10 @@ import logging
 from typing import Any, Dict, Iterable, List, Optional
 from urllib.parse import urljoin, quote
 
-import requests
+try:
+	import requests  # type: ignore
+except Exception:  # pragma: no cover
+	requests = None  # type: ignore
 
 from .ghidra_backend import GhidraBackend, GhidraFunction, GhidraFunctionBasic, Mem
 
@@ -51,8 +54,10 @@ class _HydraClient:
 				 json: Dict[str, Any] | None = None, timeout: int = 10) -> Dict[str, Any]:
 		url = urljoin(self.base_url, endpoint)
 		try:
+			if requests is None:
+				return {"success": False, "error": "requests not installed", "status_code": None}
 			resp = requests.request(method, url, params=params, json=json, timeout=timeout)
-		except requests.RequestException as e:
+		except Exception as e:
 			return {"success": False, "error": str(e), "status_code": None}
 
 		try:
@@ -191,11 +196,27 @@ class MCPHydraBackend(GhidraBackend):
 						o = str(i.get("operands", ""))
 						disassembly.append(f"{a}: {b}  {m} {o}".rstrip())
 
+
 		# Bytes: try to derive size from disassembly span; otherwise default
 		raw_bytes = self.mem[int(address, 16): int(address, 16) + 0x100]  # up to 256 bytes
 		size = len(raw_bytes)
 
-		return GhidraFunction(address, basicFunction.name, [], None, raw_bytes, size, disassembly)
+		# Xrefs in/out
+		incoming = self.get_xrefs_to(address)
+		outgoing = self.get_xrefs_from(address)
+
+		return GhidraFunction(
+			address,
+			basicFunction.name,
+			[],
+			None,
+			raw_bytes,
+			size,
+			disassembly,
+			decompiled_code=None,
+			incoming_refs=incoming,
+			outgoing_refs=outgoing,
+		)
 
 	def get_all_functions(self) -> List[GhidraFunction]:
 		return [self.get_function(f) for f in self.functions]
@@ -299,16 +320,35 @@ class MCPHydraBackend(GhidraBackend):
 		return bool(r2.get("success"))
 
 	def get_xrefs_to(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-		r = self.http.get("xrefs", params={"to_addr": address, "offset": offset, "limit": limit})
-		if _result_ok(r) and isinstance(r["result"], list):
-			return r["result"]
+		# Normalize address (API expects plain hex without 0x, often zero-padded)
+		addr = address.lower().strip()
+		if addr.startswith("0x"):
+			addr = addr[2:]
+		# Left-pad to even length (avoid odd-length hex)
+		if len(addr) % 2 == 1:
+			addr = "0" + addr
+		r = self.http.get("xrefs", params={"to_addr": addr, "offset": offset, "limit": limit})
+		if _result_ok(r):
+			return [f['from_addr'] for f in r["result"]["references"]]
 		return []
 
 	def get_xrefs_from(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-		r = self.http.get("xrefs", params={"from_addr": address, "offset": offset, "limit": limit})
-		if _result_ok(r) and isinstance(r["result"], list):
-			return r["result"]
+		addr = address.lower().strip()
+		if addr.startswith("0x"):
+			addr = addr[2:]
+		if len(addr) % 2 == 1:
+			addr = "0" + addr
+		r = self.http.get("xrefs", params={"from_addr": addr, "offset": offset, "limit": limit})
+		if _result_ok(r):
+			return [f['to_addr'] for f in r["result"]["references"]]
 		return []
+
+	# /functions/{address} endpoint
+	def get_function_info(self, address: str) -> Optional[Dict[str, Any]]:
+		r = self.http.get(f"functions/{address}")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
 
 	def list_strings(self, offset: int = 0, limit: int = 2000, filter: Optional[str] = None) -> List[Dict[str, Any]]:
 		params: Dict[str, Any] = {"offset": offset, "limit": limit}

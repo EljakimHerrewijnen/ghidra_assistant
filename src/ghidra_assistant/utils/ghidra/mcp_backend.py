@@ -1,7 +1,10 @@
 from .ghidra_backend import *
 from typing import Iterable, Optional, Any, Dict, List
 import sys
-import requests
+try:
+    import requests  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    requests = None  # type: ignore
 import argparse
 import logging
 from urllib.parse import urljoin
@@ -24,6 +27,8 @@ def safe_get(endpoint: str, params: Optional[Dict[str, Any]] = None) -> List[str
     url = urljoin(ghidra_server_url, endpoint)
 
     try:
+        if requests is None:
+            return ["Error: 'requests' package is not installed"]
         response = requests.get(url, params=params, timeout=5)
         response.encoding = 'utf-8'
         if response.ok:
@@ -36,6 +41,8 @@ def safe_get(endpoint: str, params: Optional[Dict[str, Any]] = None) -> List[str
 def safe_post(endpoint: str, data: Dict[str, Any] | str) -> str:
     try:
         url = urljoin(ghidra_server_url, endpoint)
+        if requests is None:
+            return "Error: 'requests' package is not installed"
         if isinstance(data, dict):
             response = requests.post(url, data=data, timeout=5)
         else:
@@ -131,6 +138,12 @@ def get_function_by_address(address: str) -> str:
     Get a function by its address.
     """
     return "\n".join(safe_get("get_function_by_address", {"address": address}))
+
+def get_function_containing_address(address: str) -> str:
+    """
+    Get the function that contains the specified address.
+    """
+    return "\n".join(safe_get("get_function_containing_address", {"address": address}))
 
 def get_current_address() -> str:
     """
@@ -276,6 +289,11 @@ def read_memory(address, size: int = 2000) -> str:
     # Join any returned hex tokens into a single space-separated string
     return " ".join(dat)
 
+def get_program_info() -> str:
+    """
+    Get basic information about the current program.
+    """
+    return safe_get("program_info")[0] if safe_get("program_info") else "No program information available."
 
 class MCPBackend(GhidraBackend):
     """Backend that talks to the simple HTTP MCP server.
@@ -321,9 +339,16 @@ class MCPBackend(GhidraBackend):
         raise NotImplementedError("write_mem is not supported by MCP backend")
 
     @property
+    def program_info(self):
+        """
+        Get basic information about the current program.
+        """
+        return get_program_info()
+
+    @property
     def functions(self) -> Iterable[GhidraFunctionBasic]:
         """
-    Generator that yields basic function descriptors from the program.
+        Generator that yields basic function descriptors from the program.
         """
         for f in list_functions():
             address = f.split(' ')[-1]
@@ -342,36 +367,62 @@ class MCPBackend(GhidraBackend):
         if fun_details == 'No function found at address 0':
             raise ValueError(f"Function {name} at address {address} not found.")
         # Parse the function details to extract the prototype and other information
-        try:
-            body_range = fun_details.split('\n')[3].split(': ')[1].strip()
-            start_str, end_str = body_range.split(' - ')
-            start_int = int(start_str, 16)
-            end_int = int(end_str, 16)
-            size = max(0, end_int - start_int)
-        except Exception:
-            size = 0
+        entry_point = int(fun_details.split('\n')[2].split(': ')[1].strip(), 16)
+
+        # Body: 00000410 - 0000045f
+        size = int(fun_details.split('\n')[3].split(': ')[1].strip().split(" - ")[1], 16) - int(fun_details.split('\n')[3].split(': ')[1].strip().split(" - ")[0], 16) + 1 #Add one since it will not count the last byte
 
         # Fetch additional details for the function
         disassembly = disassemble_function(address)
+        incoming_functions = get_function_xrefs(name)
+        outgoing_functions = get_xrefs_from(address)
 
-        # Ensure integer start for slicing
-        start_addr = int(address, 16) if isinstance(address, str) else address
-        raw_bytes = self.mem[start_addr:start_addr + size] if size > 0 else b""
+        raw_bytes = self.mem[entry_point:entry_point + size]
         size = len(raw_bytes)
 
-        return GhidraFunction(address, name, [], None, raw_bytes, size, disassembly)
+        return GhidraFunction(
+            address,
+            name,
+            [],
+            None,
+            raw_bytes,
+            size,
+            disassembly,
+            decompiled_code=None,
+            incoming_refs=incoming_functions,
+            outgoing_refs=outgoing_functions,
+        )
 
-    def get_all_functions(self) -> list[GhidraFunction]:
+    @property
+    def all_functions_detailed(self) -> Iterable[GhidraFunction]:
         """
         Get all functions in the program.
         """
-        return [self.get_function(f) for f in self.functions]
+        for f in self.functions:
+            yield self.get_function(f)
 
     @property
     def cursor(self) -> int:
         cur = get_current_address().strip()
         # int(..., 16) accepts both with and without 0x prefix
         return int(cur, 16)
+
+    def get_function_by_address(self, address: str) -> GhidraFunction:
+        """
+        Get a function by its address.
+        """
+        basic_function = GhidraFunctionBasic(address, "")
+        return self.get_function(basic_function)
+
+    def get_function_containing_address(self, address: str) -> GhidraFunctionBasic:
+        """
+        Get the function that contains the specified address.
+        """
+        # 'Function: bootloader_init at 000804a4\nSignature: undefined bootloader_init(void)'
+        f = get_function_containing_address(address)
+        address = f.split(' ')[3].split("\n")[0]
+        name = f.split(' ')[1]
+        return GhidraFunctionBasic(address, name)
 
     # Build a property memory that is a list that will query the backend for the memory
 
