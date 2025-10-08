@@ -1,16 +1,30 @@
-from .utils.ghidra.ghidra_connect import *
-from .utils.utils import *
+from .utils.ghidra.ghidra_connect import *  # noqa: F401,F403
+from .utils.utils import *  # noqa: F401,F403
+
 
 class GhidraAssistant:
-    def __init__(self, backend='auto') -> None:
+    def __init__(self, backend: str = 'auto', **backend_kwargs) -> None:
+        """High-level assistant wrapper.
+
+        Parameters
+        ----------
+        backend: str
+            Which backend to use ('mcp_hydra', 'mcp', 'pyhidra', 'ghidra_bridge', or 'auto').
+        **backend_kwargs:
+            Extra keyword arguments forwarded to the backend constructor where supported.
+            For the 'mcp_hydra' backend this can include:
+              - host: str
+              - port: int
+              - project_name: str
+              - file_name: str
+        """
         self.backend = backend
+        self.backend_kwargs = backend_kwargs
         self.setup()
 
     def setup(self):
-        '''
-        Setup GA
-        '''
-        self.ghidra = Ghidra(self.backend)
+        """Instantiate the underlying Ghidra backend."""
+        self.ghidra = Ghidra(self.backend, **self.backend_kwargs)
 
 def main():
     '''

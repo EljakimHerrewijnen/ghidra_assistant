@@ -104,14 +104,52 @@ def _get_first(d: Dict[str, Any], *keys: str, default: Any = None) -> Any:
 
 
 class MCPHydraBackend(GhidraBackend):
-	def __init__(self, host: Optional[str] = None, port: Optional[int] = None) -> None:
-		super().__init__()
-		host = host or _env("GHIDRA_HYDRA_HOST", "127.0.0.1")
-		port = port or int(_env("GHIDRA_HYDRA_PORT", "8192"))
-		self.base_url = f"http://{host}:{port}/"
-		self.http = _HydraClient(self.base_url)
+	def __init__(self, host: Optional[str] = None, port: Optional[int] = None,
+				 project_name: Optional[str] = None, file_name: Optional[str] = None) -> None:
+		"""Hydra backend with instance auto-selection.
 
-		# Provide Mem-compatible callable for reads
+		Selection logic:
+		1. Query /instances on the initial host:port (defaults from env if not supplied).
+		2. If project_name and/or file_name are provided, filter instances matching those fields.
+		3. If exactly one instance remains, connect to its url (host:that_port).
+		4. If no filters provided and exactly one instance exists, use it.
+		5. Otherwise raise a ValueError requiring disambiguation.
+
+		Args:
+			host: Controller host exposing /instances (default env GHIDRA_HYDRA_HOST or 127.0.0.1)
+			port: Controller port (default env GHIDRA_HYDRA_PORT or 8192)
+			project_name: Optional project name to select instance
+			file_name: Optional loaded file/program name to select instance
+		"""
+		super().__init__()
+		root_host = host or _env("GHIDRA_HYDRA_HOST", "127.0.0.1")
+		root_port = port or int(_env("GHIDRA_HYDRA_PORT", "8192"))
+		self.controller_base = f"http://{root_host}:{root_port}/"
+		self.http = _HydraClient(self.controller_base)
+		self.current_instance_info: Optional[Dict[str, Any]] = None
+
+		instances = self._fetch_instances()
+		if not instances:
+			raise ValueError("No Hydra instances available (GET /instances failed or returned empty). Launch a Ghidra session and enable ghydraMCP in configure inside the tool!")
+		chosen = self._select_instance(instances, project_name, file_name)
+		if chosen is None:
+			raise ValueError(self._build_instance_error(instances, project_name, file_name))
+
+		# Re-point client to chosen instance if different port
+		inst_url = chosen.get("url") or chosen.get("instance") or chosen.get("_url")
+		if not inst_url:
+			# Compose from port if missing url
+			inst_port = chosen.get("port")
+			if inst_port is None:
+				raise ValueError("Chosen instance missing 'url' and 'port' fields")
+			inst_url = f"http://{root_host}:{inst_port}"
+		if not inst_url.endswith('/'):
+			inst_url += '/'
+		self.base_url = inst_url
+		self.http = _HydraClient(self.base_url)
+		self.current_instance_info = chosen
+
+		# Provide Mem-compatible callable for reads after final base_url chosen
 		def _read_memory(addr: int | str, size: int) -> bytes:
 			if isinstance(addr, int):
 				address = hex(addr)
@@ -120,29 +158,74 @@ class MCPHydraBackend(GhidraBackend):
 			params = {"address": address, "length": size, "format": "hex"}
 			r = self.http.get("memory", params=params)
 			if not _result_ok(r):
-				# Return empty rather than throwing to keep parity with mcp_backend
 				logger.debug("memory read failed: %s", r)
 				return b""
 			res = r["result"]
-			# Prefer explicit hexBytes if present
 			hex_bytes: str | None = res.get("hexBytes") if isinstance(res, dict) else None
 			if hex_bytes:
 				try:
-					# Accept formats with/without 0x
 					hb = hex_bytes.replace("0x", "").replace(" ", "")
 					return bytes.fromhex(hb)
 				except ValueError:
 					pass
-			# Fallback if server returns list of 0x??
 			if isinstance(res, list) and all(isinstance(x, str) for x in res):
 				try:
 					return bytes(int(x, 16) for x in res if x.startswith("0x"))
 				except Exception:
 					return b""
-			# Final fallback: rawBytes base64 is not decoded here to avoid extra deps
 			return b""
 
 		self.mem = Mem(_read_memory)
+
+	def _fetch_instances(self) -> List[Dict[str, Any]]:
+		"""Retrieve available instances from controller.
+
+		Returns empty list if endpoint not available or failure.
+		"""
+		resp = self.http.get("instances")
+		if _result_ok(resp) and isinstance(resp.get("result"), list):
+			return resp["result"]
+		return []
+
+	def _select_instance(self, instances: List[Dict[str, Any]], project_name: Optional[str], file_name: Optional[str]) -> Optional[Dict[str, Any]]:
+		if not instances:
+			return None
+		candidates = instances
+		if project_name:
+			candidates = [i for i in candidates if str(i.get("project")) == project_name]
+		if file_name:
+			candidates = [i for i in candidates if str(i.get("file")) == file_name]
+		# If filters applied and one candidate -> pick it
+		if candidates and (project_name or file_name):
+			if len(candidates) == 1:
+				return candidates[0]
+			return None  # ambiguous
+		# No filters: only auto-pick if exactly one instance total
+		if not project_name and not file_name and len(instances) == 1:
+			return instances[0]
+		return None
+
+	def _build_instance_error(self, instances: List[Dict[str, Any]], project_name: Optional[str], file_name: Optional[str]) -> str:
+		if not instances:
+			return "No Hydra instances available (GET /instances returned empty). Launch a Ghidra session."
+		lines = ["Unable to select a unique Hydra instance."]
+		if project_name or file_name:
+			lines.append(f"Filters project={project_name!r} file={file_name!r} yielded multiple or zero matches.")
+		else:
+			lines.append("Multiple instances present; specify project_name and/or file_name.")
+		lines.append("Available instances:")
+		for inst in instances:
+			lines.append(f"  - project={inst.get('project')} file={inst.get('file')} port={inst.get('port')} type={inst.get('type')}")
+		return "\n".join(lines)
+
+	def list_instances(self) -> List[Dict[str, Any]]:
+		"""Public helper to list controller instances (same as initial query)."""
+		return self._fetch_instances()
+
+	@property
+	def selected_instance(self) -> Optional[Dict[str, Any]]:
+		"""Return the metadata dict for the chosen instance."""
+		return self.current_instance_info
 
 	# -------- convenience API used by the app --------
 
@@ -157,7 +240,7 @@ class MCPHydraBackend(GhidraBackend):
 	def functions(self) -> Iterable[GhidraFunctionBasic]:
 		"""Yield basic function objects using HATEOAS functions list."""
 		# Fetch in pages to avoid huge loads; simple single page for now
-		items = self._list_functions(offset=0, limit=1000)
+		items = self._list_functions(offset=0, limit=100_000)
 		for item in items:
 			if not isinstance(item, dict):
 				continue
@@ -273,11 +356,29 @@ class MCPHydraBackend(GhidraBackend):
 				return b""
 		return b""
 
-	def write_mem(self, address: int | str, data: bytes) -> bool:
+	def write_mem(self, address: int | str, data: bytes, force=True) -> bool:
+		'''
+		Write memory to the specified address. Max block size to write is 0x80 bytes. Chunk if needed. Return True on success, else False.
+		'''
+		if len(data) > 0x80:
+			chunk_size = 0x80
+			for i in range(0, len(data), chunk_size):
+				chunk = data[i:i + chunk_size]
+				addr = address + i if isinstance(address, int) else f"{address}+{i}"
+				if not self.write_mem(addr, chunk):
+					return False
+			return True
+		# Single chunk write
 		addr = hex(address) if isinstance(address, int) else address
 		hexstr = data.hex()
-		r = self.http.patch(f"memory/{addr}", json={"bytes": hexstr, "format": "hex"})
-		return bool(r.get("success"))
+		# curl -X PATCH 'http://localhost:8192/memory?address=0xCE00BC82' \
+		# -H 'Content-Type: application/json' \
+		# -d '{"format":"hex","bytes":"90 90 90 90","force":true}'
+		r = self.http.patch(f"memory?address={addr}", json={"bytes": hexstr, "format": "hex", "force": str(force)})
+		if not r['success']:
+			print(r['error'])
+			return False
+		return True
 
 	def disassemble_function(self, address: str) -> List[str]:
 		r = self.http.get(f"functions/{address}/disassembly")
@@ -344,6 +445,29 @@ class MCPHydraBackend(GhidraBackend):
 		return []
 
 	# /functions/{address} endpoint
+	def get_function_at(self, address: int | str) -> GhidraFunctionBasic | None:
+		"""Return the function starting at or containing the given address.
+
+		Tries both path and query forms:
+		- GET /functions/at/{addr}
+		- GET /functions/at?address={addr}
+
+		Returns the function info dict on success, else None.
+		"""
+		addr = hex(address) if isinstance(address, int) else str(address)
+		# Prefer path variant
+		r = self.http.get(f"functions/at/{addr}")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			if not isinstance(r["result"].get("address"), str):
+				r["result"]["address"] = hex(r["result"]["address"])
+			return GhidraFunctionBasic(
+				address=r["result"]["address"],
+				name=r["result"]["name"],
+				args=r['result']['parameters'],
+				return_type=r['result']['returnType'],
+			)
+		return None
+
 	def get_function_info(self, address: str) -> Optional[Dict[str, Any]]:
 		r = self.http.get(f"functions/{address}")
 		if _result_ok(r) and isinstance(r["result"], dict):
