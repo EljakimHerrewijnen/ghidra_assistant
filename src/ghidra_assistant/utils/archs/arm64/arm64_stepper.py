@@ -2,9 +2,9 @@ from ....concrete_device import *
 from .asm_arm64 import *
 
 INSTRUCTION_SIZE = 4
-LIST_ARM64_BRANCH_INSTRUCTIONS = ["b", "bl", "b.eq", "b.ne", "b.hs", "b.lo", "b.mi", "b.pl", "b.vs", "b.vc", "b.hi", "b.ls", "b.ge", "b.lt", "b.gt", "b.le", "b.al", "ret", "br", "blr"]
+LIST_ARM64_BRANCH_INSTRUCTIONS = ["b", "bl", "b.eq", "b.ne", "b.hs", "b.cs", "b.lo", "b.cc", "b.mi", "b.pl", "b.vs", "b.vc", "b.hi", "b.ls", "b.ge", "b.lt", "b.gt", "b.le", "b.al", "ret", "br", "blr", "cbz", "cbnz"]
 LIST_ARM64_BRANCH_WITH_LINK = ["bl", "blr"]
-LIST_ARM64_BRANCH_CONDITIONAL = ["b.eq", "b.ne", "b.hs", "b.lo", "b.mi", "b.pl", "b.vs", "b.vc", "b.hi", "b.ls", "b.ge", "b.lt", "b.gt", "b.le"]
+LIST_ARM64_BRANCH_CONDITIONAL = ["b.eq", "b.ne", "b.hs", "b.cs", "b.lo", "b.cc", "b.mi", "b.pl", "b.vs", "b.vc", "b.hi", "b.ls", "b.ge", "b.lt", "b.gt", "b.le"]
 
 
 class ARM64Stepper:
@@ -34,90 +34,99 @@ class ARM64Stepper:
         elif c_insn_decoded.mnemonic == "bl":
             target = c_insn_decoded.operands[0].value.imm
             return target
-        # Also all conditional branches
-        elif c_insn_decoded.mnemonic == "b.eq":
+        
+        # For conditional branches, get current NZCV flags
+        
+        nzcv = self.cd.arch_dbg.state.R_NZCV
+        # Handle conditional branches with proper condition evaluation
+        if c_insn_decoded.mnemonic == "b.eq":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b0001:
+            if nzcv.condition_met("eq"):
                 return target
         elif c_insn_decoded.mnemonic == "b.ne":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b0001:
+            if nzcv.condition_met("ne"):
                 return target
-        elif c_insn_decoded.mnemonic == "b.hs":
+        elif c_insn_decoded.mnemonic == "b.hs" or c_insn_decoded.mnemonic == "b.cs":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b1000:
+            if nzcv.condition_met("hs"):
                 return target
-        elif c_insn_decoded.mnemonic == "b.lo":
+        elif c_insn_decoded.mnemonic == "b.lo" or c_insn_decoded.mnemonic == "b.cc":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b1000:
+            if nzcv.condition_met("lo"):
                 return target
         elif c_insn_decoded.mnemonic == "b.mi":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b0100:
+            if nzcv.condition_met("mi"):
                 return target
         elif c_insn_decoded.mnemonic == "b.pl":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b0100:
+            if nzcv.condition_met("pl"):
                 return target
         elif c_insn_decoded.mnemonic == "b.vs":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b0010:
+            if nzcv.condition_met("vs"):
                 return target
         elif c_insn_decoded.mnemonic == "b.vc":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b0010:
+            if nzcv.condition_met("vc"):
                 return target
         elif c_insn_decoded.mnemonic == "b.hi":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b1100:
+            if nzcv.condition_met("hi"):
                 return target
         elif c_insn_decoded.mnemonic == "b.ls":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b1100:
+            if nzcv.condition_met("ls"):
                 return target
         elif c_insn_decoded.mnemonic == "b.ge":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b1001:
+            if nzcv.condition_met("ge"):
                 return target
         elif c_insn_decoded.mnemonic == "b.lt":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b1001:
+            if nzcv.condition_met("lt"):
                 return target
         elif c_insn_decoded.mnemonic == "b.gt":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if self.cd.arch_dbg.state.NZCV & 0b0111:
+            if nzcv.condition_met("gt"):
                 return target
         elif c_insn_decoded.mnemonic == "b.le":
             target = c_insn_decoded.operands[0].value.imm
-            # Check if condition is met using R_NZCV register in self.cd.arch_dbg.state.R_NZCV
-            if not self.cd.arch_dbg.state.NZCV & 0b0111:
+            if nzcv.condition_met("le"):
                 return target
         elif c_insn_decoded.mnemonic == "b.al":
             target = c_insn_decoded.operands[0].value.imm
             return target
+        elif c_insn_decoded.mnemonic == "cbz":
+            # Compare and Branch on Zero: branch if register is zero
+            reg = c_insn_decoded.operands[0].value.reg
+            target = c_insn_decoded.operands[1].value.imm
+            reg_value = getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(reg).upper())
+            if reg_value == 0:
+                return target
+        elif c_insn_decoded.mnemonic == "cbnz":
+            # Compare and Branch on Non-Zero: branch if register is not zero
+            reg = c_insn_decoded.operands[0].value.reg
+            target = c_insn_decoded.operands[1].value.imm
+            reg_value = getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(reg).upper())
+            if reg_value != 0:
+                return target
         elif c_insn_decoded.mnemonic == "ret":
-            # Get target register
-            target = c_insn_decoded.operands[0].value.reg
-            return self.cd.arch_dbg.state.get_reg(target)
+            # Get target register, default to x30 (LR) if no operand
+            if len(c_insn_decoded.operands) > 0:
+                target = c_insn_decoded.operands[0].value.reg
+                return self.cd.arch_dbg.state.get_reg(target)
+            else:
+                return self.cd.arch_dbg.state.get_reg("x30")
         elif c_insn_decoded.mnemonic == "br" or c_insn_decoded.mnemonic == "blr":
             # Get target register
             target = c_insn_decoded.operands[0].value.reg
             return self.cd.arch_dbg.state.get_reg(target)
         else:
             raise Exception(f"Branch instruction {c_insn_decoded.mnemonic} not implemented")
+        
+        # Fall through case - condition not met, continue to next instruction
         return c_insn_decoded.address + INSTRUCTION_SIZE
 
     def get_next_block(self, from_pc) -> int:
@@ -153,8 +162,9 @@ class ARM64Stepper:
         self.pc = hook_addr
         self.cd.memwrite_region(hook_addr, next_block) # restore code
         print(f"Block at {hex(hook_addr)}")
-
+        
     def step(self):
+        print( "NZCV_entry:", bin(self.cd.arch_dbg.state.NZCV))
         c_insn = self.cd.memdump_region(self.pc, 4)
 
         next_address = self.get_next_addr()
@@ -168,9 +178,11 @@ class ARM64Stepper:
 
         self.cd.fetch_special_regs()
         if self.debug:
+            print("===================================")
             print(f"PC: {hex(self.pc)}")
             print(f"Next PC: {hex(next_address)}")
             print(f"Next block: {next_block}")
+            print( "NZCV:", bin(self.cd.arch_dbg.state.NZCV))
             print(f"Instruction: {instr_decoded}")
             self.cd.arch_dbg.state.print_ctx()
 
@@ -182,13 +194,14 @@ class ARM64Stepper:
         # Update PC and restore overwritten code
         self.pc = next_address
         self.cd.memwrite_region(self.pc, next_block)
+        
+        # CRITICAL: Refresh special registers after instruction execution
+        # self.cd.fetch_special_regs()
 
         print(instr_decoded)
-        pass
 
-    def run(self, start):
+    def run(self, start, end=None):
         self.pc = start
         # TODO figure out when to stop, for example when a function has returned
-        while True:
+        while self.pc != end if end is not None else True:
             self.step()
-        pass

@@ -301,4 +301,4 @@ class GA_arm64_debugger(BaseArch_debugger):
 
     def fetch_special_regs(self):
         self.write(b"SPEC")
-        self.read(0x100)
+        self.read(4) # GiAs
