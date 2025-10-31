@@ -164,7 +164,6 @@ class ARM64Stepper:
         print(f"Block at {hex(hook_addr)}")
         
     def step(self):
-        print( "NZCV_entry:", bin(self.cd.arch_dbg.state.NZCV))
         c_insn = self.cd.memdump_region(self.pc, 4)
 
         next_address = self.get_next_addr()
@@ -194,9 +193,6 @@ class ARM64Stepper:
         # Update PC and restore overwritten code
         self.pc = next_address
         self.cd.memwrite_region(self.pc, next_block)
-        
-        # CRITICAL: Refresh special registers after instruction execution
-        # self.cd.fetch_special_regs()
 
         print(instr_decoded)
 
