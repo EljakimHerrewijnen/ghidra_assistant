@@ -1,9 +1,16 @@
+import os
+import subprocess
+import threading
+from typing import Optional
+
 from unicorn.arm_const import *
 from unicorn import *
 from capstone import *
 from keystone import *
 from ..asm_utils import ShellcodeCrafter
 from ...utils import *
+from .memory_proxy import MemoryProxy
+from .fuse_memfs import mount_in_background
 
 class ARM_Emulator:
     '''
@@ -11,6 +18,10 @@ class ARM_Emulator:
         Supports both ARM and Thumb modes.
     '''
     def __init__(self, init_uc = True):
+        self._uc = None
+        self.mem = None
+        self.fuse_mountpoint: Optional[str] = None
+        self._fuse_thread: Optional[threading.Thread] = None
         if init_uc:
             self.uc = Uc(UC_ARCH_ARM, UC_MODE_ARM)
 
@@ -24,6 +35,75 @@ class ARM_Emulator:
         self.md.detail = True
 
         self.setup_shellcode()
+
+    @property
+    def uc(self):
+        return self._uc
+
+    @uc.setter
+    def uc(self, value):
+        self._uc = value
+        self.mem = MemoryProxy(value) if value is not None else None
+
+    # -------- FUSE helpers --------
+    def enable_fuse_memoryfs(self, mountpoint: str = '/tmp/arm_emu') -> bool:
+        """Mount Unicorn memory via FUSE for external inspection."""
+
+        if not mountpoint:
+            raise ValueError('mountpoint path required')
+        self.fuse_mountpoint = mountpoint
+        if self._is_mountpoint(mountpoint):
+            self._attempt_unmount(mountpoint)
+        else:
+            try:
+                os.listdir(mountpoint)
+            except OSError:
+                self._attempt_unmount(mountpoint)
+        os.makedirs(mountpoint, exist_ok=True)
+        try:
+            self._fuse_thread = mount_in_background(self, mountpoint)
+            return self._fuse_thread is not None
+        except Exception:
+            self._fuse_thread = None
+            return False
+
+    def disable_fuse_memoryfs(self):
+        path = getattr(self, 'fuse_mountpoint', None)
+        if not path:
+            return
+        if self._is_mountpoint(path):
+            self._attempt_unmount(path)
+        try:
+            if os.path.isdir(path) and not self._is_mountpoint(path) and not os.listdir(path):
+                os.rmdir(path)
+        except Exception:
+            pass
+        self._fuse_thread = None
+
+    def _is_mountpoint(self, path: str) -> bool:
+        try:
+            if not os.path.exists(path):
+                return False
+            path = os.path.abspath(path)
+            parent = os.path.abspath(os.path.join(path, '..'))
+            return os.stat(path).st_dev != os.stat(parent).st_dev
+        except Exception:
+            return False
+
+    def _attempt_unmount(self, path: str):
+        cmds = [
+            ['fusermount3', '-u', path],
+            ['fusermount', '-u', path],
+            ['umount', path],
+            ['umount', '-l', path],
+        ]
+        for cmd in cmds:
+            try:
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=2)
+                if not self._is_mountpoint(path):
+                    return
+            except Exception:
+                continue
 
     def setup_shellcode(self):
         self.sc = ShellcodeCrafter(self.ks, self.cs)

@@ -227,6 +227,36 @@ class MCPHydraBackend(GhidraBackend):
 		"""Return the metadata dict for the chosen instance."""
 		return self.current_instance_info
 
+	# -------- meta + context endpoints --------
+
+	def get_plugin_version_info(self) -> Optional[Dict[str, Any]]:
+		"""Return plugin/api version metadata (GET /plugin-version)."""
+		r = self.http.get("plugin-version")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def get_instance_info(self) -> Optional[Dict[str, Any]]:
+		"""Return detailed info about the current plugin instance (GET /info)."""
+		r = self.http.get("info")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def get_project_info(self) -> Optional[Dict[str, Any]]:
+		"""Return information about the current Ghidra project (GET /project)."""
+		r = self.http.get("project")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def get_program_info(self) -> Optional[Dict[str, Any]]:
+		"""Return metadata for the active program/binary (GET /program)."""
+		r = self.http.get("program")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
 	# -------- convenience API used by the app --------
 
 	def _list_functions(self, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
@@ -420,29 +450,54 @@ class MCPHydraBackend(GhidraBackend):
 		r2 = self.http.post(f"memory/{address}/comments/pre", json={"comment": comment})
 		return bool(r2.get("success"))
 
-	def get_xrefs_to(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-		# Normalize address (API expects plain hex without 0x, often zero-padded)
+	def _normalize_hex_address(self, address: str) -> str:
 		addr = address.lower().strip()
 		if addr.startswith("0x"):
 			addr = addr[2:]
-		# Left-pad to even length (avoid odd-length hex)
 		if len(addr) % 2 == 1:
 			addr = "0" + addr
-		r = self.http.get("xrefs", params={"to_addr": addr, "offset": offset, "limit": limit})
-		if _result_ok(r):
-			return [f['from_addr'] for f in r["result"]["references"]]
-		return []
+		return addr
 
-	def get_xrefs_from(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
-		addr = address.lower().strip()
-		if addr.startswith("0x"):
-			addr = addr[2:]
-		if len(addr) % 2 == 1:
-			addr = "0" + addr
-		r = self.http.get("xrefs", params={"from_addr": addr, "offset": offset, "limit": limit})
-		if _result_ok(r):
-			return [f['to_addr'] for f in r["result"]["references"]]
-		return []
+	def xrefs_query(self, *, to_addr: Optional[str] = None, from_addr: Optional[str] = None,
+					 ref_type: Optional[str] = None, offset: int = 0, limit: int = 100) -> Dict[str, Any]:
+		if not to_addr and not from_addr:
+			raise ValueError("xrefs_query requires at least one of to_addr/from_addr")
+		params: Dict[str, Any] = {"offset": offset, "limit": limit}
+		if to_addr:
+			params["to_addr"] = self._normalize_hex_address(to_addr)
+		if from_addr:
+			params["from_addr"] = self._normalize_hex_address(from_addr)
+		if ref_type:
+			params["type"] = ref_type
+		result: Dict[str, Any] = {"references": [], "offset": offset, "limit": limit, "size": None}
+		r = self.http.get("xrefs", params=params)
+		if _result_ok(r) and isinstance(r["result"], dict):
+			payload = r["result"]
+			references = payload.get("references") or payload.get("result") or []
+			if isinstance(references, list):
+				result["references"] = references
+			for key in ("size", "offset", "limit"):
+				if key in payload:
+					result[key] = payload[key]
+		return result
+
+	def get_xrefs_to(self, address: str, offset: int = 0, limit: int = 100,
+					 ref_type: Optional[str] = None, include_metadata: bool = False) -> Any:
+		res = self.xrefs_query(to_addr=address, offset=offset, limit=limit, ref_type=ref_type)
+		return res if include_metadata else res["references"]
+
+	def get_xrefs_from(self, address: str, offset: int = 0, limit: int = 100,
+					 ref_type: Optional[str] = None, include_metadata: bool = False) -> Any:
+		res = self.xrefs_query(from_addr=address, offset=offset, limit=limit, ref_type=ref_type)
+		return res if include_metadata else res["references"]
+
+	def get_function_xrefs(self, address: str, *, direction: str = "both",
+						 offset: int = 0, limit: int = 100) -> Dict[str, Any]:
+		params: Dict[str, Any] = {"offset": offset, "limit": limit, "direction": direction}
+		r = self.http.get(f"functions/{address}/xrefs", params=params)
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return {"incoming": [], "outgoing": [], "offset": offset, "limit": limit}
 
 	# /functions/{address} endpoint
 	def get_function_at(self, address: int | str) -> GhidraFunctionBasic | None:
@@ -474,14 +529,77 @@ class MCPHydraBackend(GhidraBackend):
 			return r["result"]
 		return None
 
-	def list_strings(self, offset: int = 0, limit: int = 2000, filter: Optional[str] = None) -> List[Dict[str, Any]]:
+	def list_strings(self, offset: int = 0, limit: int = 2000, filter: Optional[str] = None,
+					 name_contains: Optional[str] = None) -> List[Dict[str, Any]]:
 		params: Dict[str, Any] = {"offset": offset, "limit": limit}
 		if filter:
 			params["filter"] = filter
+		if name_contains:
+			params["name_contains"] = name_contains
 		r = self.http.get("strings", params=params)
 		if _result_ok(r) and isinstance(r["result"], list):
 			return r["result"]
 		return []
+
+	# -------- Symbols API --------
+
+	def symbols_list(self, offset: int = 0, limit: int = 200, *, addr: Optional[str] = None,
+					 symbol_type: Optional[str] = None, name: Optional[str] = None,
+					 name_contains: Optional[str] = None, name_regex: Optional[str] = None) -> List[Dict[str, Any]]:
+		params: Dict[str, Any] = {"offset": offset, "limit": limit}
+		if addr:
+			params["addr"] = addr
+		if symbol_type:
+			params["type"] = symbol_type
+		if name:
+			params["name"] = name
+		if name_contains:
+			params["name_contains"] = name_contains
+		if name_regex:
+			params["name_matches_regex"] = name_regex
+		r = self.http.get("symbols", params=params)
+		if _result_ok(r) and isinstance(r["result"], list):
+			return r["result"]
+		return []
+
+	def symbols_get(self, address: str) -> Optional[Dict[str, Any]]:
+		r = self.http.get(f"symbols/{address}")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def symbols_create(self, address: str, name: str, *, symbol_type: Optional[str] = None,
+					  namespace: Optional[str] = None, primary: Optional[bool] = None) -> bool:
+		payload: Dict[str, Any] = {"address": address, "name": name}
+		if symbol_type:
+			payload["type"] = symbol_type
+		if namespace:
+			payload["namespace"] = namespace
+		if primary is not None:
+			payload["primary"] = primary
+		r = self.http.post("symbols", json=payload)
+		return bool(r.get("success"))
+
+	def symbols_update(self, address: str, *, name: Optional[str] = None,
+					  namespace: Optional[str] = None, symbol_type: Optional[str] = None,
+					  primary: Optional[bool] = None) -> bool:
+		payload: Dict[str, Any] = {}
+		if name is not None:
+			payload["name"] = name
+		if namespace is not None:
+			payload["namespace"] = namespace
+		if symbol_type is not None:
+			payload["type"] = symbol_type
+		if primary is not None:
+			payload["primary"] = primary
+		if not payload:
+			return True
+		r = self.http.patch(f"symbols/{address}", json=payload)
+		return bool(r.get("success"))
+
+	def symbols_delete(self, address: str) -> bool:
+		r = self.http.delete(f"symbols/{address}")
+		return bool(r.get("success"))
 
 	def list_data(self, offset: int = 0, limit: int = 100, addr: Optional[str] = None,
 				  name: Optional[str] = None, name_contains: Optional[str] = None,
@@ -500,6 +618,12 @@ class MCPHydraBackend(GhidraBackend):
 			return r["result"]
 		return []
 
+	def data_get(self, address: str) -> Optional[Dict[str, Any]]:
+		r = self.http.get(f"data/{address}")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
 	def data_create(self, address: str, data_type: str, size: Optional[int] = None) -> bool:
 		payload: Dict[str, Any] = {"address": address, "type": data_type}
 		if size is not None:
@@ -508,15 +632,107 @@ class MCPHydraBackend(GhidraBackend):
 		return bool(r.get("success"))
 
 	def data_rename(self, address: str, new_name: str) -> bool:
-		r = self.http.post("data", json={"address": address, "newName": new_name})
-		return bool(r.get("success"))
+		return self.data_update(address, name=new_name)
 
 	def data_delete(self, address: str) -> bool:
-		r = self.http.post("data/delete", json={"address": address, "action": "delete"})
-		return bool(r.get("success"))
+		r = self.http.delete(f"data/{address}")
+		if r.get("success"):
+			return True
+		# Fallback for older plugins
+		r2 = self.http.post("data/delete", json={"address": address, "action": "delete"})
+		return bool(r2.get("success"))
 
 	def data_set_type(self, address: str, data_type: str) -> bool:
-		r = self.http.post("data/type", json={"address": address, "type": data_type})
+		return self.data_update(address, data_type=data_type)
+
+	def data_update(self, address: str, *, name: Optional[str] = None,
+				  data_type: Optional[str] = None, comment: Optional[str] = None,
+				  size: Optional[int] = None) -> bool:
+		payload: Dict[str, Any] = {}
+		if name is not None:
+			payload["name"] = name
+		if data_type is not None:
+			payload["type"] = data_type
+		if comment is not None:
+			payload["comment"] = comment
+		if size is not None:
+			payload["size"] = size
+		if not payload:
+			return True
+		r = self.http.patch(f"data/{address}", json=payload)
+		return bool(r.get("success"))
+
+	# -------- Structs API --------
+
+	def structs_list(self, offset: int = 0, limit: int = 100, category: Optional[str] = None,
+					 name_contains: Optional[str] = None) -> List[Dict[str, Any]]:
+		"""List struct definitions with optional pagination/filtering."""
+		params: Dict[str, Any] = {"offset": offset, "limit": limit}
+		if category:
+			params["category"] = category
+		if name_contains:
+			params["name_contains"] = name_contains
+		r = self.http.get("structs", params=params)
+		if _result_ok(r) and isinstance(r["result"], list):
+			return r["result"]
+		return []
+
+	def structs_get(self, name: str) -> Optional[Dict[str, Any]]:
+		"""Retrieve a single struct definition including fields."""
+		r = self.http.get("structs", params={"name": name})
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def structs_create(self, name: str, *, category: Optional[str] = None,
+					  description: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {"name": name}
+		if category:
+			payload["category"] = category
+		if description:
+			payload["description"] = description
+		r = self.http.post("structs/create", json=payload)
+		return bool(r.get("success"))
+
+	def structs_add_field(self, struct_name: str, field_name: str, field_type: str,
+						   *, offset: Optional[int] = None, comment: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {
+			"struct": struct_name,
+			"fieldName": field_name,
+			"fieldType": field_type,
+		}
+		if offset is not None:
+			payload["offset"] = offset
+		if comment:
+			payload["comment"] = comment
+		r = self.http.post("structs/addfield", json=payload)
+		return bool(r.get("success"))
+
+	def structs_update_field(self, struct_name: str, *, field_name: Optional[str] = None,
+							  field_offset: Optional[int] = None,
+							  new_name: Optional[str] = None,
+							  new_type: Optional[str] = None,
+							  new_comment: Optional[str] = None) -> bool:
+		if field_name is None and field_offset is None:
+			raise ValueError("Must provide field_name or field_offset to identify struct field")
+		if not any([new_name, new_type, new_comment]):
+			raise ValueError("Must supply at least one of new_name/new_type/new_comment")
+		payload: Dict[str, Any] = {"struct": struct_name}
+		if field_name is not None:
+			payload["fieldName"] = field_name
+		if field_offset is not None:
+			payload["fieldOffset"] = field_offset
+		if new_name is not None:
+			payload["newName"] = new_name
+		if new_type is not None:
+			payload["newType"] = new_type
+		if new_comment is not None:
+			payload["newComment"] = new_comment
+		r = self.http.post("structs/updatefield", json=payload)
+		return bool(r.get("success"))
+
+	def structs_delete(self, name: str) -> bool:
+		r = self.http.post("structs/delete", json={"name": name})
 		return bool(r.get("success"))
 
 	def functions_create(self, address: str) -> bool:
@@ -564,7 +780,7 @@ class MCPHydraBackend(GhidraBackend):
 		return []
 
 	def mmap_region(self, addr: int, name: str, size: int, read: bool = True, write: bool = True, execute: bool = False) -> None:
-		raise NotImplementedError("Memory mapping is not supported by the HATEOAS API")
+		self.memory_create_segment(name, addr, size, read=read, write=write, execute=execute)
 
 	# -------- Memory segments (best-effort based on API doc) --------
 
