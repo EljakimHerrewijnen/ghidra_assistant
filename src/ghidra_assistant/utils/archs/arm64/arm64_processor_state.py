@@ -783,3 +783,253 @@ class ARM64_Concrete_State:
     @X30.setter
     def X30(self, value : int):
         self.write_config(X30, value)
+
+    # All W0 - W30 are aliases to X0 - X30
+    @property
+    def W0(self):
+        return self.X0 & 0xFFFFFFFF
+
+    @W0.setter
+    def W0(self, value : int):
+        self.X0 = (self.X0 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W1(self):
+        return self.X1 & 0xFFFFFFFF
+
+    @W1.setter
+    def W1(self, value : int):
+        self.X1 = (self.X1 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W2(self):
+        return self.X2 & 0xFFFFFFFF
+
+    @W2.setter
+    def W2(self, value : int):
+        self.X2 = (self.X2 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W3(self):
+        return self.X3 & 0xFFFFFFFF
+
+    @W3.setter
+    def W3(self, value : int):
+        self.X3 = (self.X3 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W4(self):
+        return self.X4 & 0xFFFFFFFF
+
+    @W4.setter
+    def W4(self, value : int):
+        self.X4 = (self.X4 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W5(self):
+        return self.X5 & 0xFFFFFFFF
+
+    @W5.setter
+    def W5(self, value : int):
+        self.X5 = (self.X5 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W6(self):
+        return self.X6 & 0xFFFFFFFF
+
+    @W6.setter
+    def W6(self, value : int):
+        self.X6 = (self.X6 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W7(self):
+        return self.X7 & 0xFFFFFFFF
+
+    @W7.setter
+    def W7(self, value : int):
+        self.X7 = (self.X7 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W8(self):
+        return self.X8 & 0xFFFFFFFF
+
+    @W8.setter
+    def W8(self, value : int):
+        self.X8 = (self.X8 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W9(self):
+        return self.X9 & 0xFFFFFFFF
+
+    @W9.setter
+    def W9(self, value : int):
+        self.X9 = (self.X9 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W10(self):
+        return self.X10 & 0xFFFFFFFF
+
+    @W10.setter
+    def W10(self, value : int):
+        self.X10 = (self.X10 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W11(self):
+        return self.X11 & 0xFFFFFFFF
+
+    @W11.setter
+    def W11(self, value : int):
+        self.X11 = (self.X11 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W12(self):
+        return self.X12 & 0xFFFFFFFF
+
+    @W12.setter
+    def W12(self, value : int):
+        self.X12 = (self.X12 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W13(self):
+        return self.X13 & 0xFFFFFFFF
+
+    @W13.setter
+    def W13(self, value : int):
+        self.X13 = (self.X13 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W14(self):
+        return self.X14 & 0xFFFFFFFF
+
+    @W14.setter
+    def W14(self, value : int):
+        self.X14 = (self.X14 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W15(self):
+        return self.X15 & 0xFFFFFFFF
+
+    @W15.setter
+    def W15(self, value : int):
+        self.X15 = (self.X15 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W16(self):
+        return self.X16 & 0xFFFFFFFF
+
+    @W16.setter
+    def W16(self, value : int):
+        self.X16 = (self.X16 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W17(self):
+        return self.X17 & 0xFFFFFFFF
+
+    @W17.setter
+    def W17(self, value : int):
+        self.X17 = (self.X17 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W18(self):
+        return self.X18 & 0xFFFFFFFF
+
+    @W18.setter
+    def W18(self, value : int):
+        self.X18 = (self.X18 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W19(self):
+        return self.X19 & 0xFFFFFFFF
+
+    @W19.setter
+    def W19(self, value : int):
+        self.X19 = (self.X19 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W20(self):
+        return self.X20 & 0xFFFFFFFF
+
+    @W20.setter
+    def W20(self, value : int):
+        self.X20 = (self.X20 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W21(self):
+        return self.X21 & 0xFFFFFFFF
+
+    @W21.setter
+    def W21(self, value : int):
+        self.X21 = (self.X21 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W22(self):
+        return self.X22 & 0xFFFFFFFF
+
+    @W22.setter
+    def W22(self, value : int):
+        self.X22 = (self.X22 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W23(self):
+        return self.X23 & 0xFFFFFFFF
+
+    @W23.setter
+    def W23(self, value : int):
+        self.X23 = (self.X23 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W24(self):
+        return self.X24 & 0xFFFFFFFF
+
+    @W24.setter
+    def W24(self, value : int):
+        self.X24 = (self.X24 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W25(self):
+        return self.X25 & 0xFFFFFFFF
+
+    @W25.setter
+    def W25(self, value : int):
+        self.X25 = (self.X25 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W26(self):
+        return self.X26 & 0xFFFFFFFF
+
+    @W26.setter
+    def W26(self, value : int):
+        self.X26 = (self.X26 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W27(self):
+        return self.X27 & 0xFFFFFFFF
+
+    @W27.setter
+    def W27(self, value : int):
+        self.X27 = (self.X27 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W28(self):
+        return self.X28 & 0xFFFFFFFF
+
+    @W28.setter
+    def W28(self, value : int):
+        self.X28 = (self.X28 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W29(self):
+        return self.X29 & 0xFFFFFFFF
+
+    @W29.setter
+    def W29(self, value : int):
+        self.X29 = (self.X29 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+
+    @property
+    def W30(self):
+        return self.X30 & 0xFFFFFFFF
+
+    @W30.setter
+    def W30(self, value : int):
+        self.X30 = (self.X30 & 0xFFFFFFFF00000000) | (value & 0xFFFFFFFF)
+

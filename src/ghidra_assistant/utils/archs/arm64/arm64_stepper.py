@@ -8,107 +8,122 @@ LIST_ARM64_BRANCH_CONDITIONAL = ["b.eq", "b.ne", "b.hs", "b.cs", "b.lo", "b.cc",
 
 
 class ARM64Stepper:
-    def __init__(self, cd : ConcreteDevice , pc, debug=False) -> None:
+    def __init__(self, cd : ConcreteDevice , pc, debug=False, auto_flush=False) -> None:
         self.cd = cd
         self.sc : ShellcodeCrafter = self.cd.arch_dbg.sc
         self.pc = pc
         self.debug = debug
+        self.auto_flush = auto_flush
         self.saved_pcs = {}
         self.sc.cs.detail = True #https://github.com/capstone-engine/capstone/issues/1275
 
         self.hook_type = "ldr_branch_0x10"
 
+        self.breakpoints = {}
+        self.jump_over = {}
+
     def get_next_addr(self) -> int:
         c_insn = self.cd.memdump_region(self.pc, 4)
         c_insn_decoded = next(self.sc.cs.disasm(c_insn, self.pc))
         if c_insn_decoded.mnemonic in LIST_ARM64_BRANCH_INSTRUCTIONS:
-            return self.get_branch_addr(c_insn_decoded)
+            # It is a branch instruction
+            next_addr = self.get_branch_addr(c_insn_decoded)
         else:
-            return self.pc + INSTRUCTION_SIZE
+            next_addr = self.pc + INSTRUCTION_SIZE
+
+        if next_addr in self.jump_over:
+            target = self.jump_over[next_addr]
+            if type(target) == str:
+                target = getattr(self.cd.arch_dbg.state, target)
+            else:
+                assert type(target) == int, "jump_over target must be int or str"
+
+            if self.debug:
+                print(f"Jumping over from {hex(next_addr)} to {hex(target)}")
+            next_addr = target
+        return next_addr
 
     def get_branch_addr(self, c_insn_decoded) -> int:
         # Check if it is a branch instruction
         if c_insn_decoded.mnemonic == "b":
-            target = c_insn_decoded.operands[0].value.imm
-            return target
+            return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "bl":
-            target = c_insn_decoded.operands[0].value.imm
-            return target
-        
+            return int(c_insn_decoded.op_str[3:], 16)
+
         # For conditional branches, get current NZCV flags
-        
+
         nzcv = self.cd.arch_dbg.state.R_NZCV
         # Handle conditional branches with proper condition evaluation
         if c_insn_decoded.mnemonic == "b.eq":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("eq"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.ne":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("ne"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.hs" or c_insn_decoded.mnemonic == "b.cs":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("hs"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.lo" or c_insn_decoded.mnemonic == "b.cc":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("lo"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.mi":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("mi"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.pl":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("pl"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.vs":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("vs"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.vc":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("vc"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.hi":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("hi"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.ls":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("ls"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.ge":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("ge"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.lt":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("lt"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.gt":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("gt"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.le":
             target = c_insn_decoded.operands[0].value.imm
             if nzcv.condition_met("le"):
-                return target
+                return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "b.al":
             target = c_insn_decoded.operands[0].value.imm
-            return target
+            return int(c_insn_decoded.op_str[3:], 16)
         elif c_insn_decoded.mnemonic == "cbz":
             # Compare and Branch on Zero: branch if register is zero
             reg = c_insn_decoded.operands[0].value.reg
-            target = c_insn_decoded.operands[1].value.imm
+            target = int(c_insn_decoded.op_str.split(", ")[1][3:], 16)
             reg_value = getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(reg).upper())
             if reg_value == 0:
                 return target
         elif c_insn_decoded.mnemonic == "cbnz":
             # Compare and Branch on Non-Zero: branch if register is not zero
             reg = c_insn_decoded.operands[0].value.reg
-            target = c_insn_decoded.operands[1].value.imm
+            target = int(c_insn_decoded.op_str.split(", ")[1][3:], 16)
             reg_value = getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(reg).upper())
             if reg_value != 0:
                 return target
@@ -116,16 +131,16 @@ class ARM64Stepper:
             # Get target register, default to x30 (LR) if no operand
             if len(c_insn_decoded.operands) > 0:
                 target = c_insn_decoded.operands[0].value.reg
-                return self.cd.arch_dbg.state.get_reg(target)
+                return getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(target).upper())
             else:
-                return self.cd.arch_dbg.state.get_reg("x30")
+                return getattr(self.cd.arch_dbg.state, "X30")
         elif c_insn_decoded.mnemonic == "br" or c_insn_decoded.mnemonic == "blr":
             # Get target register
             target = c_insn_decoded.operands[0].value.reg
-            return self.cd.arch_dbg.state.get_reg(target)
+            return getattr(self.cd.arch_dbg.state, self.sc.cs.reg_name(target).upper())
         else:
             raise Exception(f"Branch instruction {c_insn_decoded.mnemonic} not implemented")
-        
+
         # Fall through case - condition not met, continue to next instruction
         return c_insn_decoded.address + INSTRUCTION_SIZE
 
@@ -162,7 +177,7 @@ class ARM64Stepper:
         self.pc = hook_addr
         self.cd.memwrite_region(hook_addr, next_block) # restore code
         print(f"Block at {hex(hook_addr)}")
-        
+
     def step(self):
         c_insn = self.cd.memdump_region(self.pc, 4)
 
@@ -183,10 +198,12 @@ class ARM64Stepper:
             print(f"Next block: {next_block}")
             print( "NZCV:", bin(self.cd.arch_dbg.state.NZCV))
             print(f"Instruction: {instr_decoded}")
-            self.cd.arch_dbg.state.print_ctx()
+            print(self.cd.arch_dbg.state.get_ctx())
 
         # Place the debugger hook at pc + INSTRUCTION_SIZE
         self.cd.memwrite_region(next_address, self.cd.arch_dbg.sc.branch_absolute(self.cd.arch_dbg.debugger_addr))
+        if self.auto_flush:
+            self.cd.write(b"FLSH") # TODO TODO add optional cache flush
         self.cd.restore_stack_and_jump(self.pc)
         assert self.cd.read(4) == b"GiAs", "Stepping failed to return to debugger!"
 
