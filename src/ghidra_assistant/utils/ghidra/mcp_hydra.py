@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import os
 import logging
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urljoin, quote
 
 try:
@@ -765,11 +765,64 @@ class MCPHydraBackend(GhidraBackend):
 		return None
 
 	# Features not supported by HATEOAS plugin; implement as no-ops to preserve API
+	def _normalize_background_color(self, color: str) -> str:
+		"""Normalize accepted color names for the Hydra API."""
+		prefix = "java.awt.Color."
+		if isinstance(color, str) and color.startswith(prefix):
+			# API supports constants and fully-qualified constants.
+			# Convert to constant for consistency.
+			return color[len(prefix):]
+		return color
+
+	def set_background_colors(self, addresses: Sequence[int | str], color: str = "java.awt.Color.YELLOW") -> None:
+		"""Set the same background color for multiple addresses.
+
+		Uses:
+		- POST /memory/background-colors
+		- PATCH /memory/background-colors (fallback)
+		- Per-address fallback for older plugin variants
+		"""
+		if not addresses:
+			return
+
+		color_value = self._normalize_background_color(color)
+		normalized_addresses: List[str] = []
+		for a in addresses:
+			if isinstance(a, int):
+				normalized_addresses.append(hex(a))
+			else:
+				normalized_addresses.append(str(a))
+
+		payload = {"addresses": normalized_addresses, "color": color_value}
+		r = self.http.post("memory/background-colors", json=payload)
+		if r.get("success"):
+			return
+
+		r2 = self.http.patch("memory/background-colors", json=payload)
+		if r2.get("success"):
+			return
+
+		# Backward-compatible fallback: set one-by-one.
+		failed = 0
+		for addr in normalized_addresses:
+			r3 = self.http.post(f"memory/{addr}/background-color", json={"color": color_value})
+			if r3.get("success"):
+				continue
+			r4 = self.http.patch(f"memory/{addr}/background-color", json={"color": color_value})
+			if not r4.get("success"):
+				failed += 1
+		if failed:
+			logger.warning("set_background_colors failed for %d/%d addresses", failed, len(normalized_addresses))
+
 	def set_background_color(self, addresses: List[int], color: str = "java.awt.Color.YELLOW") -> None:
-		logger.info("set_background_color is not supported by MCP Hydra backend; ignoring (%d addresses)", len(addresses))
+		"""Backward-compatible alias for bulk background coloring."""
+		self.set_background_colors(addresses, color=color)
 
 	def clear_background_color(self) -> None:
-		logger.info("clear_background_color is not supported by MCP Hydra backend; ignoring")
+		"""Clear all background colors in the current program."""
+		r = self.http.delete("memory/background-colors")
+		if not r.get("success"):
+			logger.warning("clear_background_color failed: %s", r.get("error", "unknown error"))
 
 	def get_ghidra_memory_maps(self) -> List[Any]:
 		# Try via documented segments endpoint if available
