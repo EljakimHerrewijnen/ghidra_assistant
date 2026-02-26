@@ -289,6 +289,10 @@ class MCPHydraBackend(GhidraBackend):
 			if not isinstance(address, str):
 				# Try from links if present
 				address = item.get("id") or item.get("start") or "0x0"
+			if ":" in address:
+				# Handle potential "space:0xaddr" format by taking the addr part
+				parts = address.split(":")
+				address = parts[-1] if parts else address
 			yield GhidraFunctionBasic(address, name)
 
 	def get_function(self, basicFunction: GhidraFunctionBasic) -> GhidraFunction:
@@ -309,6 +313,11 @@ class MCPHydraBackend(GhidraBackend):
 						o = str(i.get("operands", ""))
 						disassembly.append(f"{a}: {b}  {m} {o}".rstrip())
 
+		dec_r = self.http.get(f"functions/{address}/decompile", params={"syntax_tree": "false", "style": "normalize"})
+		decompiled_code = None
+		if _result_ok(dec_r) and isinstance(dec_r["result"], dict):
+			decompiled_code = _get_first(dec_r["result"], "decompiled", "ccode", "decompiled_text", default="") or None
+
 
 		# Bytes: try to derive size from disassembly span; otherwise default
 		raw_bytes = self.mem[int(address, 16): int(address, 16) + 0x100]  # up to 256 bytes
@@ -326,7 +335,7 @@ class MCPHydraBackend(GhidraBackend):
 			raw_bytes,
 			size,
 			disassembly,
-			decompiled_code=None,
+			decompiled_code=decompiled_code,
 			incoming_refs=incoming,
 			outgoing_refs=outgoing,
 		)
