@@ -10,7 +10,7 @@ import logging
 from urllib.parse import urljoin
 
 
-DEFAULT_GHIDRA_SERVER = "http://127.0.0.1:8090/"
+DEFAULT_GHIDRA_SERVER = "http://127.0.0.1:8192/"
 
 logger = logging.getLogger(__name__)
 

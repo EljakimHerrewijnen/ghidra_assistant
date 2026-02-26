@@ -69,7 +69,7 @@ class GA_arm64_debugger(BaseArch_debugger):
         if size >= self.transmission_size:
             try:
                 # Some USB implementations require a read to clear the buffer??
-                self.read(0)
+                self.read(0x200)
             except:
                 pass
             self.write(b"ACK\x00")

@@ -114,10 +114,22 @@ class ARM64_Concrete_State:
         if self.auto_sync_special:
             self.debugger.sync_special_regs()
 
-    def get_ctx(self):
+    def restore_ctx(self, ctx : dict[str, int]):
+        for reg, value in ctx.items():
+            if reg.startswith("X"):
+                self.__setattr__(reg, value)
+        if self.auto_sync:
+            self.debugger.sync_state()
+
+    def get_ctx(self, as_dict=False):
         '''
         TODO write as dict with registers and values
         '''
+        if as_dict:
+            ret = {}
+            for i in range(31):
+                ret[f"X{i}"] = getattr(self, f"X{i}")
+            return ret
         state  = f"""
              PC: 0x????????????????\t LR: 0x{self.LR:16x}\t SP: 0x{self.SP:16x}\t FP: 0x{self.FP:16x}
              X0: 0x{self.X0:16x}\t X1: 0x{self.X1:16x}\t X2: 0x{self.X2:16x}\t X3: 0x{self.X3:16x}\t
@@ -783,6 +795,14 @@ class ARM64_Concrete_State:
     @X30.setter
     def X30(self, value : int):
         self.write_config(X30, value)
+
+    @property
+    def X31(self):
+        return self.SP
+
+    @X31.setter
+    def X31(self, value : int):
+        self.SP = value
 
     # All W0 - W30 are aliases to X0 - X30
     @property
