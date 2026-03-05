@@ -275,6 +275,8 @@ class MCPHydraBackend(GhidraBackend):
 			if not isinstance(item, dict):
 				continue
 			name = _get_first(item, "name", "function_name", default="<unnamed>")
+			if "ram_" in name: # Hack to remove verbose "ram_" prefix from function names
+				name = name.replace("ram_", "")
 			# Common address field variants
 			address = _get_first(
 				item,
@@ -488,6 +490,13 @@ class MCPHydraBackend(GhidraBackend):
 			for key in ("size", "offset", "limit"):
 				if key in payload:
 					result[key] = payload[key]
+
+		# For each item in result['references]['from_addr] and result['references]['from_addr] values remove the ram: prefix if it exists to make them cleaner and more consistent with function addresses
+		for ref in result["references"]:
+			if isinstance(ref, dict):
+				for addr_key in ("from_addr", "to_addr", "address"):
+					if addr_key in ref and isinstance(ref[addr_key], str) and ref[addr_key].startswith("ram:"):
+						ref[addr_key] = ref[addr_key][4:]
 		return result
 
 	def get_xrefs_to(self, address: str, offset: int = 0, limit: int = 100,
@@ -524,6 +533,12 @@ class MCPHydraBackend(GhidraBackend):
 		if _result_ok(r) and isinstance(r["result"], dict):
 			if not isinstance(r["result"].get("address"), str):
 				r["result"]["address"] = hex(r["result"]["address"])
+
+			if ":" in r["result"]["address"]:
+				# Handle potential "space:0xaddr" format by taking the addr part
+				parts = r["result"]["address"].split(":")
+				r["result"]["address"] = parts[-1] if parts else r["result"]["address"]
+
 			return GhidraFunctionBasic(
 				address=r["result"]["address"],
 				name=r["result"]["name"],
