@@ -19,6 +19,7 @@ Notes:
 from __future__ import annotations
 
 import os
+import re
 import logging
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 from urllib.parse import urljoin, quote
@@ -36,6 +37,63 @@ logger = logging.getLogger(__name__)
 def _env(name: str, default: str) -> str:
 	v = os.environ.get(name)
 	return v if v not in (None, "") else default
+
+
+_HEX_ADDRESS_RE = re.compile(r"^(?:0x)?[0-9a-fA-F]+$")
+_ADDRESS_KEY_SET = {
+	"address",
+	"addresses",
+	"addr",
+	"entry",
+	"entrypoint",
+	"entry_address",
+	"from_addr",
+	"to_addr",
+	"call_site",
+	"root_address",
+	"imagebase",
+	"start",
+	"end",
+	"start_address",
+	"end_address",
+	"stop",
+}
+
+
+def _is_address_key(key: str) -> bool:
+	k = key.lower()
+	return k in _ADDRESS_KEY_SET or k.endswith("_address") or k.endswith("_addr")
+
+
+def _sanitize_address_value(value: str) -> str:
+	if not isinstance(value, str) or ":" not in value:
+		return value
+	# Keep behavior simple and fast: only strip prefixes from namespace-like address
+	# strings such as "ram:000c2404" or "stack:0x401000".
+	candidate = value.rsplit(":", 1)[-1].strip()
+	if _HEX_ADDRESS_RE.fullmatch(candidate):
+		return candidate
+	return value
+
+
+def _sanitize_addresses_in_payload(payload: Any, parent_key: Optional[str] = None) -> Any:
+	if isinstance(payload, dict):
+		for k, v in payload.items():
+			if isinstance(v, str) and _is_address_key(str(k)):
+				payload[k] = _sanitize_address_value(v)
+			else:
+				payload[k] = _sanitize_addresses_in_payload(v, parent_key=str(k))
+		return payload
+
+	if isinstance(payload, list):
+		for idx, item in enumerate(payload):
+			payload[idx] = _sanitize_addresses_in_payload(item, parent_key=parent_key)
+		return payload
+
+	if isinstance(payload, str) and parent_key and _is_address_key(parent_key):
+		return _sanitize_address_value(payload)
+
+	return payload
 
 
 class _HydraClient:
@@ -77,6 +135,7 @@ class _HydraClient:
 			data["success"] = bool(resp.ok)
 		if "status_code" not in data:
 			data["status_code"] = resp.status_code
+		_sanitize_addresses_in_payload(data)
 		return data
 
 	def get(self, endpoint: str, params: Dict[str, Any] | None = None) -> Dict[str, Any]:
@@ -291,10 +350,8 @@ class MCPHydraBackend(GhidraBackend):
 			if not isinstance(address, str):
 				# Try from links if present
 				address = item.get("id") or item.get("start") or "0x0"
-			if ":" in address:
-				# Handle potential "space:0xaddr" format by taking the addr part
-				parts = address.split(":")
-				address = parts[-1] if parts else address
+			if isinstance(address, str):
+				address = _sanitize_address_value(address)
 			yield GhidraFunctionBasic(address, name)
 
 	def get_function(self, basicFunction: GhidraFunctionBasic) -> GhidraFunction:
@@ -462,7 +519,7 @@ class MCPHydraBackend(GhidraBackend):
 		return bool(r2.get("success"))
 
 	def _normalize_hex_address(self, address: str) -> str:
-		addr = address.lower().strip()
+		addr = _sanitize_address_value(address).lower().strip()
 		if addr.startswith("0x"):
 			addr = addr[2:]
 		if len(addr) % 2 == 1:
@@ -490,13 +547,6 @@ class MCPHydraBackend(GhidraBackend):
 			for key in ("size", "offset", "limit"):
 				if key in payload:
 					result[key] = payload[key]
-
-		# For each item in result['references]['from_addr] and result['references]['from_addr] values remove the ram: prefix if it exists to make them cleaner and more consistent with function addresses
-		for ref in result["references"]:
-			if isinstance(ref, dict):
-				for addr_key in ("from_addr", "to_addr", "address"):
-					if addr_key in ref and isinstance(ref[addr_key], str) and ref[addr_key].startswith("ram:"):
-						ref[addr_key] = ref[addr_key][4:]
 		return result
 
 	def get_xrefs_to(self, address: str, offset: int = 0, limit: int = 100,
@@ -534,10 +584,7 @@ class MCPHydraBackend(GhidraBackend):
 			if not isinstance(r["result"].get("address"), str):
 				r["result"]["address"] = hex(r["result"]["address"])
 
-			if ":" in r["result"]["address"]:
-				# Handle potential "space:0xaddr" format by taking the addr part
-				parts = r["result"]["address"].split(":")
-				r["result"]["address"] = parts[-1] if parts else r["result"]["address"]
+			r["result"]["address"] = _sanitize_address_value(r["result"]["address"])
 
 			return GhidraFunctionBasic(
 				address=r["result"]["address"],
