@@ -29,7 +29,7 @@ try:
 except Exception:  # pragma: no cover
 	requests = None  # type: ignore
 
-from .ghidra_backend import GhidraBackend, GhidraFunction, GhidraFunctionBasic, Mem
+from .ghidra_backend import GhidraBackend, GhidraFunction, GhidraFunctionBasic, GhidraFunctionArgument, Mem
 
 logger = logging.getLogger(__name__)
 
@@ -377,10 +377,21 @@ class MCPHydraBackend(GhidraBackend):
 		if _result_ok(dec_r) and isinstance(dec_r["result"], dict):
 			decompiled_code = _get_first(dec_r["result"], "decompiled", "ccode", "decompiled_text", default="") or None
 
-
 		# Bytes: try to derive size from disassembly span; otherwise default
 		raw_bytes = self.mem[int(address, 16): int(address, 16) + 0x100]  # up to 256 bytes
 		size = len(raw_bytes)
+
+		# Arguments
+		vars_r = self.http.get(f"functions/{address}/variables")
+		vars: List[GhidraFunctionArgument] = []
+		if _result_ok(vars_r) and isinstance(vars_r["result"], dict):
+			for v in vars_r["result"].get("variables", []) or []:
+				if isinstance(v, dict):
+					if v.get("isParameter") is True:
+						var_name = str(v.get("name", ""))
+						var_type = str(v.get("type", ""))
+						var_storage = str(v.get("storage", ""))
+						vars.append(GhidraFunctionArgument(var_name, var_type, var_storage))
 
 		# Xrefs in/out
 		incoming = self.get_xrefs_to(address)
@@ -389,7 +400,7 @@ class MCPHydraBackend(GhidraBackend):
 		return GhidraFunction(
 			address,
 			basicFunction.name,
-			[],
+			vars,
 			None,
 			raw_bytes,
 			size,

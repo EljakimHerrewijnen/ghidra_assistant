@@ -1,6 +1,18 @@
 import typing, hashlib, struct
 from typing import Optional, List, Iterable
 
+class GhidraFunctionArgument:
+    def __init__(self, name: str, arg_type: str, arg_storage: str):
+        self.name = name
+        self.type = arg_type
+        self.storage = arg_storage
+
+    def __str__(self):
+        return f"{self.type} {self.name} [{self.storage}]"
+
+    def __repr__(self):
+        return f"<GhidraFunctionArgument name={self.name} type={self.type} storage={self.storage}>"
+
 class GhidraFunctionBasic():
     def __init__(self, address: str, name: str, args: Optional[List[str]] = None, return_type: Optional[str] = None):
         self.address = address
