@@ -2,64 +2,79 @@
 Setup
 =====
 
-To use the GA, install the python requirements in a virtual environment. 
+Requirements
+------------
+
+- Python 3.12+
+- `PDM <https://pdm-project.org/>`_ for dependency management
+- `Ghidra <https://github.com/NationalSecurityAgency/ghidra>`_
+- `ghydraMCP <https://github.com/LaurieWired/GhidraMCP>`_ Ghidra plugin (for the default ``mcp_hydra`` backend)
+
+Install the Python environment
+------------------------------
 
 .. code-block:: console
 
-    python3 -m venv venv/
-    source venv/bin/activate
-    pip3 install -r requirements.txt
+    pipx install pdm        # install PDM once
+    pdm sync -d             # create venv and install all dependencies
 
-Install ``ghidra_bridge`` into ghidra:
+Ghidra setup (mcp_hydra backend)
+---------------------------------
+
+The default backend, ``mcp_hydra``, communicates with the `ghydraMCP <https://github.com/LaurieWired/GhidraMCP>`_ plugin. Install the plugin in Ghidra, then enable it via *File → Configure → ghydraMCP*. The plugin exposes a REST API on ``http://127.0.0.1:8192`` by default.
+
+If Ghidra runs on a different host or port, set environment variables before running the GA:
 
 .. code-block:: console
 
-    pip3 install ghidra_bridge
-
-(Optional) install ``.pyi`` `bindings in python for ghidra <https://github.com/VDOO-Connected-Trust/ghidra-pyi-generator>`_.
+    export GHIDRA_HYDRA_HOST=192.168.1.10
+    export GHIDRA_HYDRA_PORT=8192
 
 Usage
 -----
-Open Ghidra and start ghidra_bridge. Next you can run the GA in python.
+
+.. code-block:: python
+
+    from ghidra_assistant.ghidra_assistant import GhidraAssistant
+
+    ga = GhidraAssistant()           # uses mcp_hydra by default
+    ga = GhidraAssistant('mcp_hydra', project_name='MyProject', file_name='firmware.bin')
+
+Run the entry-point directly:
 
 .. code-block:: console
 
-    python3 ghidra_assistent.py load
+    pdm run ghidra-assistant
 
 VsCode
 ------
 
-The GA works very well with VsCode. It is *highly* recommended to use vscode.
+The GA works well with VS Code. The ``.vscode/launch.json`` in the repository provides a ready-made debug configuration.
 
-Android NDK (Optional)
-----------------------
+Alternative backends
+--------------------
 
-To build remote targets, you will need an ``Android NDK``. Download `one from google <https://developer.android.com/ndk/downloads>`_.
+``ghidra_bridge``
+    Legacy Python bridge. Install the server-side script in Ghidra via the Script Manager, then run it. Requires the ``ghidra_bridge`` Python package.
 
-Triton (Optional)
------------------
-Follow the instructions at the `offical github page <https://github.com/JonathanSalwan/Triton>`_.
+``pyhidra``
+    Headless/embedded Ghidra via the ``pyhidra`` package. Useful for scripted analysis without a running Ghidra GUI.
 
-.. note:: 
+``mcp``
+    Connects to a simpler HTTP MCP server. Fewer features than ``mcp_hydra``.
 
-    If you receive errors while trying to import the triton package (from triton import * ), you will need to copy the triton.so file to the python path (venv/lib/python3.10/site-packages/).
+Pass the backend name when constructing ``GhidraAssistant``:
 
-To add python bindings, navigate in the Triton source directory to ``doc/auto_complete`` and run *python3 generate_autocomplete.py*. 
-Copy the generated .pyi file to the root of the site-packages folder of your python environment.
+.. code-block:: python
 
-Example Devices
----------------
-Several example devices are being developed. Most notably:
+    ga = GhidraAssistant(backend='ghidra_bridge')
 
-* https://git.herreweb.nl/EljakimHerrewijnen/Shofel2_T124_python
-* https://git.herreweb.nl/EljakimHerrewijnen/Amlogic_S905X3 (Todo, still private)
+Building the Gupje stub (optional)
+-----------------------------------
 
-Unicorn
--------
-clone unicorn and build it using:
+To use ``ConcreteDevice`` with a real target, you need the Gupje stub compiled for your device. Clone `Gupje <https://github.com/EljakimHerrewijnen/Gupje>`_ and follow its build instructions. An Android NDK is required for ARM targets:
 
-.. code:: console
+.. code-block:: console
 
-    mkdir build; cd build
-    cmake .. -DCMAKE_BUILD_TYPE=Release
-    make
+    export ANDROID_NDK_ROOT=/path/to/android-ndk
+    make -f devices/<your_device>/Makefile

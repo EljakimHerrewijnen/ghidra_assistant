@@ -265,20 +265,20 @@ def list_strings(offset: int = 0, limit: int = 2000, filter: Optional[str] = Non
     return safe_get("strings", params)
 
 def read_memory(address, size: int = 2000) -> str:
-    if type(address) == int:
-        address = hex(address)
-
-    assert type(address) == str, "Address must be a string in hex format (e.g. '0x1400010a0')"
     """
     Get raw bytes from the specified address.
 
     Args:
-        address: Address to read from in hex format (e.g. "0x1400010a0")
-        size: Number of bytes to read (default: 16)
+        address: Address to read from in hex format (e.g. "0x1400010a0") or an int
+        size: Number of bytes to read (default: 2000)
 
     Returns:
-        Raw bytes as a hex string
+        Raw bytes as a space-separated hex string
     """
+    if isinstance(address, int):
+        address = hex(address)
+
+    assert isinstance(address, str), "Address must be a string in hex format (e.g. '0x1400010a0')"
     params = {"address": address, "size": size}
     dat = safe_get("memory", params)
 
@@ -312,13 +312,12 @@ class MCPBackend(GhidraBackend):
     def read_memory(self, address, size: int = 2000) -> bytes:
         """Read memory bytes at address.
 
-        Accepts int or hex-string address and returns bytes. Mirrors the
-        behavior of the legacy read_memory helper.
+        Accepts int or hex-string address and returns bytes.
         """
-        if type(address) == int:
+        if isinstance(address, int):
             address = hex(address)
 
-        assert type(address) == str, "Address must be a string in hex format (e.g. '0x1400010a0')"
+        assert isinstance(address, str), "Address must be a string in hex format (e.g. '0x1400010a0')"
 
         params = {"address": address, "size": size}
         dat = safe_get("memory", params)

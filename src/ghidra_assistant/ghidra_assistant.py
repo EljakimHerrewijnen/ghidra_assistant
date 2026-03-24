@@ -3,13 +3,13 @@ from .utils.utils import *  # noqa: F401,F403
 
 
 class GhidraAssistant:
-    def __init__(self, backend: str = 'auto', **backend_kwargs) -> None:
+    def __init__(self, backend: str = 'mcp_hydra', **backend_kwargs) -> None:
         """High-level assistant wrapper.
 
         Parameters
         ----------
         backend: str
-            Which backend to use ('mcp_hydra', 'mcp', 'pyhidra', 'ghidra_bridge', or 'auto').
+            Which backend to use ('mcp_hydra', 'mcp', 'pyhidra', 'ghidra_bridge').
         **backend_kwargs:
             Extra keyword arguments forwarded to the backend constructor where supported.
             For the 'mcp_hydra' backend this can include:

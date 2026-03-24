@@ -1,165 +1,183 @@
 GA debugger
 ===========
-The GA debugger is a tool that is meant to be able to debug code on any target device but mainly devices with the architectures: THUMB, ARM, ARM64. More architectures can be added easily, but are not supported currently. 
+The GA debugger controls a `Gupje <https://github.com/EljakimHerrewijnen/Gupje>`_ stub running on a real hardware target. The stub handles only raw PEEK/POKE and a handful of architecture-specific commands; the GA host-side code provides the higher-level interface.
 
-The goal is to have an universal debugger that can be easily adapted for any new target. 
+Supported architectures: ARM64 (AArch64), ARM Thumb, ARM (minimal).
 
 *****************
 Debugger overview
 *****************
 
-The debugger consists out of several parts, but the main part can be described as a debugger that runs on the host, and a block of shellcode that runs on the target. 
+The debugger has two halves: host-side Python code (this repository) and a small shellcode stub that runs on the target. The host sends 4-byte command words; the stub executes them and returns results over the same transport (USB, UART, etc.).
 
 .. image:: images/debugger/overview_debugger.jpg
 
-
-The code on the host interacts with the shellcode on the target, this first primitive that is required is any method of running our own code on the target. Currently this code needs to be run at the highest privelege level ``EL3`` on ARM64. 
+The stub must be loaded and started at the highest available privilege level — EL3 on ARM64. The only bootstrap requirement is a read/write primitive to upload the stub.
 
 Debugger Segments
 *****************
-The debugger is split in 3 main segments. These segments are:
+Four 4 KiB pages are reserved in device memory:
 
-+--------+------------------------------------------------------------------------------------------------------------------------+
-|Segment |Function                                                                                                                |
-+========+========================================================================================================================+
-|Debugger|Handle Peek/Poke commands and architecture specific commands                                                            |
-+--------+------------------------------------------------------------------------------------------------------------------------+
-|VBAR_ELX|Used for implementating breakpoints. Using the debugger we can overwrite the exception handler to point to the debugger |
-+--------+------------------------------------------------------------------------------------------------------------------------+
-|Storage |Space in memory to store debugger information, like the state of the                                                    |
-+--------+------------------------------------------------------------------------------------------------------------------------+
-|Shellc  |*unimplmeneted* Code segment that can be used to store and execute                                                      |
-+--------+------------------------------------------------------------------------------------------------------------------------+
-|Stack   |Stack location for the debugger. This prevents the stack from being tainted while using the debugger.                   |
-+--------+------------------------------------------------------------------------------------------------------------------------+
-
-So the memory map for the debugger can be updated as follows:
++----------+--------------------------------------------------------------+
+| Segment  | Purpose                                                      |
++==========+==============================================================+
+| Debugger | Stub code: handles PEEK/POKE and architecture commands       |
++----------+--------------------------------------------------------------+
+| VBAR_ELX | Exception vector table used for software breakpoints        |
++----------+--------------------------------------------------------------+
+| Storage  | Saved register state and debugger control fields            |
++----------+--------------------------------------------------------------+
+| Stack    | Dedicated stack for the stub (prevents tainting target SP)  |
++----------+--------------------------------------------------------------+
 
 .. image:: images/debugger/debugger_memory_map.jpg
 
-Debugger payload
-****************
-The code that needs to be running is the payload for the debugger. When this payload works the host can setup the rest of the debugger functionallity. On ARM-based devices we use the **Vector Base Address Register(VBAR)** for software based breakpoints. When the debugger is running on the device (r/w primitive) the debugger will be able to setup the VBAR to do debugging.
-
-TODO & Implement
-****************
-List of features that should be implemented:
-
-    * (Automatic) Pagetable parsing to show which pages are mapped with what properties
-    * Implement correct handling of the ERET command. By setting a breakpoint we want to jump back to the original code and execute the original instruction.
-    * Sync target state with emulator. E.g copy state to emulator and continue execution there
-    * Hardware in the Loop, in combination with the emulator
-
-
-Debugger VBAR_ELX
-*****************
-The VBAR_ELX consists out of shellcode that is generated on the fly by the host. The reason for this is that is dependent on the architecture. 
-The VBAR_ELX uses the debugger for comminucation with the host. Upon entering the debugger the debugger will save all the registers to the storage location. 
-To do this register ``X15`` will be corrupted. Next the ``Stack Pointer`` will be overwritten to point to the debugger stack. 
-This will prevent the debugger from tainting the stack. 
-
-Next the user can interact with the debugger and use the python bindings to interact with the device. To continue execution the *restore_and_jump* python binding can be used to restore the original registers and continue execution with a user provided address.
-
-.. note:: It might be a good idea to, instead of overwriting X15 to use the ``tpidrro_el0`` register to store the value of X15. It seems this register is usually updated in the VBAR handling and *should* be free to corrupt with no consequences
-
 Debugger Commands
 *****************
-An overview with the commands implemented on the shellcode side of the debugger can be seen below. These commands should be implemented for each architecture, but also be device independent. For example, the ``REST`` command for restoring the stack and jumping to an address should be the same for all ARM64 devices.
+These commands are sent as 4-byte ASCII strings from the host:
 
 +---------+------------------------------------------------------------------------------------------------------------------------------+
 | Command | Function                                                                                                                     |
 +=========+==============================================================================================================================+
-| PING    | Tests connection to the concrete device. The device should answer with b'PONG'                                               |
+| PING    | Test connection. Device replies with ``b'PONG'``                                                                             |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| PEEK    | Command to read memory from the device. The user can supply the address and length to be dumped                              |
+| PEEK    | Read memory. Host supplies address (8 bytes) + length (4 bytes); device streams the bytes back                              |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| POKE    | Command to write data to memory. User needs to supply the address and length of data to be send                              |
+| POKE    | Write memory. Host supplies address + length, then sends the data                                                           |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| SELF    | Get the absolute address of the location of the debugger_main function.                                                      |
+| SELF    | Return the absolute address of ``debugger_main``                                                                             |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| MAIN    | Execute device specific commands. The debugger assumes this function is implemented in the concrete device (*concrete_main*) |
+| MAIN    | Execute device-specific code (``concrete_main`` in the Gupje stub)                                                          |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| FLSH    | Architecture dependent cache flush command. This command should flush as much caches as possible                             |
+| FLSH    | Flush instruction and data caches                                                                                            |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| JUMP    | Jump to a user supplied address. This does **not** restore the original processor state                                      |
+| JUMP    | Jump to a user-supplied address (does not restore processor state)                                                           |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| SPEC    | Explicitly dump processor specific registers, like ``vbar_el3`` and ``sctlr_el3``                                            |
+| SPEC    | Dump architecture-specific registers (e.g. ``VBAR_EL3``, ``SCTLR_EL3``) into storage                                       |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| ERET    | Exception Return. This does **not** explicitly restore the processor state.                                                  |
+| ERET    | Exception Return (does not restore processor state)                                                                          |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| REST    | Restore stack and jump to the address written in ``DEBUGGER_STORAGE`` + ``0xff8``                                            |
+| REST    | Restore register state from storage and jump to the address at ``STORAGE + 0xff8``                                          |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| SYNC    | Synchronize processor state written in ``DEBUGGER_STORAGE`` with the actual registers on the device                          |
+| SYNC    | Write register values from storage to the actual hardware registers                                                         |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
-| TEST    | Dummy function to quickly test c or assembly code in the debugger                                                            |
+| TEST    | Stub for quickly testing small C/assembly snippets                                                                           |
 +---------+------------------------------------------------------------------------------------------------------------------------------+
 
-.. note:: This API is still being edited and commands are still added.
+Debugger payload
+****************
+The Gupje stub must be loaded at a known location in device memory. Once it is running the host calls ``auto_debugger_setup()`` to discover the stub's runtime address, dump the current processor state, and read the special-purpose registers.
+
+The host-side Python class for ARM64 is ``GA_arm64_debugger`` (``utils/debugger/debugger_archs/ga_arm64.py``). It inherits from ``BaseArch_debugger`` and provides the full command set.
+
+Debugger VBAR_ELX
+*****************
+Software breakpoints use the Vector Base Address Register (VBAR). The host generates a vector table in the VBAR page that stores all registers, overwrites SP with the debugger stack, then branches to the debugger stub. This is generated on the fly by ``create_debugger_vbar()``.
+
+On ARM64, register ``X15`` is temporarily corrupted during the handler prologue. The original VBAR address should be saved before hijacking so that execution can be resumed via ``continue_execution()``.
+
+.. note:: Register X15 is corrupted on entry to the VBAR handler.
 
 ********************************
-Implement Debugger on new target
+Add a new target (Gupje + GA)
 ********************************
-The main requirements for adding a new target are that we need a primitive to run code(the debugger). 
-Currently only EL3 is supported on ARM based devices, but this can be adapted to also support EL2 and EL1.
+To add support for a new device:
 
-For the most basic setup the following functions need to be implemented:
-    * send(\*buffer, size, \*num_transferd)
-    * recv(\*buffer, size, \*num_transferd)
-    * concrete_main(debugger_addr)
+**1. Implement the Gupje stub (C)**
 
-The main function can be just a stub because it is only executed when the **MAIN** command is executed. For example implementations look at the source code in *utils/debugger/remote_shellcode*. 
+Provide ``send``, ``recv``, and ``concrete_main`` for your hardware transport::
 
-Example code for the Nvidia Shield Tablet:
-******************************************
+    void send(void *buf, uint32_t size, uint32_t *xfer) { /* USB/UART write */ }
+    int  recv(void *buf, uint32_t size, uint32_t *xfer) { /* USB/UART read  */ }
+    void concrete_main(uint32_t debugger_addr)          { /* device-specific */ }
 
-The code segment below implements the debugger for the Nvidia Shield tablet. The code for the exploit to run the debugger is `on Eljakims Gitea <https://git.herreweb.nl/EljakimHerrewijnen/Shofel2_T124_python/src/branch/master/ShofEL2-for-T124>`_
+Build with the Android NDK (or your target's toolchain) and load it onto the device.
+
+**2. Subclass ConcreteDevice (Python)**
+
+Create a device file (e.g. ``my_device.py``) and implement at least ``read`` and ``write``::
+
+    from ghidra_assistant.concrete_device import ConcreteDevice
+
+    class MyDevice(ConcreteDevice):
+        def __init__(self):
+            super().__init__()
+            self.arch = "ARM64"
+
+        def read(self, length: int) -> bytes:
+            # read from USB/UART
+            ...
+
+        def write(self, data: bytes) -> None:
+            # write to USB/UART
+            ...
+
+        def device_setup(self, cd):
+            # optional: configure addresses, call copy_functions(), etc.
+            cd.ga_debugger_location = 0x100000
+            cd.ga_vbar_location     = 0x101000
+            cd.ga_storage_location  = 0x102000
+            cd.ga_stack_location    = 0x103000
+            cd.arch_dbg = GA_arm64_debugger(
+                cd.ga_vbar_location, cd.ga_debugger_location, cd.ga_storage_location
+            )
+            cd.arch_dbg.read  = self.read
+            cd.arch_dbg.write = self.write
+            cd.copy_functions()
+
+Pass the path to this file when constructing ``ConcreteDevice``::
+
+    from ghidra_assistant.concrete_device import ConcreteDevice
+    cd = ConcreteDevice(target_dev="my_device.py")
+
+**3. Add a new architecture (optional)**
+
+To add an architecture not yet supported, create a new class in ``utils/debugger/debugger_archs/`` that inherits from ``BaseArch_debugger`` and implements the methods in the following table:
+
++---------------------------+--------------------------------------------------+
+| Method                    | Description                                      |
++===========================+==================================================+
+| ``create_debugger_vbar``  | Generate the vector table shellcode              |
++---------------------------+--------------------------------------------------+
+| ``memdump_region``        | Send PEEK and receive bytes                      |
++---------------------------+--------------------------------------------------+
+| ``memwrite_region``       | Send POKE and data                               |
++---------------------------+--------------------------------------------------+
+| ``jump_to``               | Send JUMP + address                              |
++---------------------------+--------------------------------------------------+
+| ``restore_stack_and_jump``| Send REST after writing the target address       |
++---------------------------+--------------------------------------------------+
+| ``sync_state``            | Send SYNC                                        |
++---------------------------+--------------------------------------------------+
+| ``fetch_special_regs``    | Send SPEC                                        |
++---------------------------+--------------------------------------------------+
+| ``add_hook``              | Patch an instruction to branch to the debugger   |
++---------------------------+--------------------------------------------------+
+
+Also create a matching ``Concrete_State`` class (see ``arm64_processor_state.py``) to map the storage page layout for the new architecture.
+
+Example: Nvidia Shield Tablet (ARM Thumb)
+*****************************************
 
 .. code-block:: c
 
     #define BOOTROM_EP1_IN_WRITE_IMM    0x001065C0
     #define BOOTROM_EP1_OUT_READ_IMM    0x00106612
 
-    #define DEBUGGER_STORAGE 0x14905000
-
     typedef void (*ep1_x_imm_t)(void *buffer, uint32_t size, uint32_t *num_xfer);
-    ep1_x_imm_t usb_recv = (ep1_x_imm_t) ( BOOTROM_EP1_OUT_READ_IMM | 1 );
-    ep1_x_imm_t usb_send = (ep1_x_imm_t) ( BOOTROM_EP1_IN_WRITE_IMM | 1 );
+    ep1_x_imm_t usb_recv = (ep1_x_imm_t)(BOOTROM_EP1_OUT_READ_IMM | 1);
+    ep1_x_imm_t usb_send = (ep1_x_imm_t)(BOOTROM_EP1_IN_WRITE_IMM | 1);
 
-    void send(void *buffer, uint32_t size, uint32_t *num_xfer){
+    void send(void *buffer, uint32_t size, uint32_t *num_xfer) {
         usb_send(buffer, size, num_xfer);
     }
 
-    int recv(void *buffer, uint32_t size, uint32_t *num_xfer){
+    int recv(void *buffer, uint32_t size, uint32_t *num_xfer) {
         usb_recv(buffer, size, num_xfer);
-        return (int)&num_xfer;
+        return 0;
     }
 
-    int mystrlen(char *data) {
-        int i=0;
-        while(1) {
-            if(data[i++] == '\0'){
-                break;
-            }
-        }
-        return i-1;
-    }
-
-    void usb_log(char * msg, uint32_t * error){
-        send(msg, mystrlen(msg), error);
-    }
-
-    void recv_data(void *data, uint32_t len) {
-        uint32_t rx_err_code;
-        uint32_t xfer = 0;
-        while(1) {
-            recv(data, len, &xfer);
-            if(xfer >= len) {
-                break;            
-            }
-        }
-    }
-
-    void concrete_main(uint32_t debugger){
-
+    void concrete_main(uint32_t debugger) {
+        /* device-specific commands here */
     }
 

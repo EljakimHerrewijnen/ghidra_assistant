@@ -16,6 +16,10 @@ Ghidra Assistant
    
    setup.rst
 
+   bridge/bridge.rst
+
+   concrete_device.rst
+
 .. toctree::
    :maxdepth: 2
    :caption: Architectures:

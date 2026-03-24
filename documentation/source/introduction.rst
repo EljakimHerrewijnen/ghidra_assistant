@@ -1,20 +1,27 @@
 Introduction to the Ghidra Assistant
 ====================================
-The ghidra assistant(GA) is a tool that tries to, easily incoperate several functions in ghidra that are currently missing. The main things I miss in ghidra currently are:
 
-    * Easy programming interface with gui that does not rely on python2 or java. 
-    * Easily interact with emulators and debuggers. gdb can be used, but not qiling, qemu or panda. I would like to use all of them
-    * Incoperate symbolic execution(Triton, Angr) as a standard tool in ghidra. 
-    * Fuzzing with symbolic execution and concrete execution. It would be nice to have an easy method of debugging concrete targets(avatar-gdb).
-    * Easily add c structures to ghidra. The current method in ghidra is a pain, I would like something that will use a linter to import a lot of structures from an opensource project (preferably all)
+The Ghidra Assistant (GA) is a Python library that connects `Ghidra <https://github.com/NationalSecurityAgency/ghidra>`_ to bare-metal hardware targets and emulators. It is designed for firmware analysis and post-exploitation workflows, typically in combination with `Gupje <https://github.com/EljakimHerrewijnen/Gupje>`_, a small bare-metal stub debugger that runs directly on target hardware.
 
-Other wanted features:
-**********************
-    -   Interactive assembly debugger
-    -   Pagetable parsing 
+Core capabilities
+*****************
 
-This list will probably only keep growing.
+- **Ghidra API** — a unified Python interface to Ghidra via multiple backends. The default backend is ``mcp_hydra``, which talks to the `ghydraMCP <https://github.com/LaurieWired/GhidraMCP>`_ Ghidra plugin.
+- **ConcreteDevice** — abstraction for communicating with a real hardware target over a PEEK/POKE protocol. The device-side counterpart is implemented in Gupje.
+- **Architecture debugger** — host-side logic for ARM64, ARM, and ARM Thumb that controls a Gupje stub running on the target: set up the vector table, read/write registers and memory, insert breakpoints, restore execution.
+- **Emulator layer** — thin wrapper on top of Unicorn that loads memory and register state from a Ghidra project or a concrete device snapshot.
 
+Typical workflow
+****************
 
+1. Gain code execution on the target (e.g. bootrom exploit, UART console).
+2. Upload and execute the Gupje stub, which provides PEEK/POKE over USB or UART.
+3. Use ``ConcreteDevice`` + the GA architecture debugger to interact with the device from Python: read memory, set breakpoints via the vector table, sync register state with Ghidra.
+4. Optionally snapshot the device state and replay it in the Unicorn emulator for offline analysis.
 
+Supported architectures
+***********************
 
+- ARM64 (AArch64) — EL3/EL1 debugger, MMU parsing, VBAR-based breakpoints
+- ARM Thumb — basic register state, VBAR-based breakpoints
+- ARM — minimal support

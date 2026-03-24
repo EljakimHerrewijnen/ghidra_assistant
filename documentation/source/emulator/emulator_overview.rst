@@ -1,48 +1,32 @@
 ===========
 GA Emulator
 ===========
-The ``GA Emulator`` is not an actual emulator, but a setup layer on top of existing emulators. 
-The advantage for this is that we can use existing emulators without having to implement our own emulator environment.
 
-The goal is to have multiple inputs for the Emulator. For example, when there is only a Ghidra project, that could be used as input. 
-But if there is also a ``Conrecte Device`` or an existing snapshot this could also be used as staging point.
+The GA emulator is a setup layer on top of `Unicorn <https://www.unicorn-engine.org/>`_. It populates the emulator's memory and registers from one of several sources: a Ghidra project (via any backend), a concrete device snapshot, or an existing memory dump.
 
-An overview of the emulator in correspondence with Ghidra can be seen below:
+Memory is represented as a list of ``GA_Memory_Segment`` objects, each with a start address, size, content, and RWX permissions. Registers are stored in ``GA_Em_Snapshot``, which can be pickled and reloaded for offline replay.
 
-.. drawio-image:: emulator_overview.drawio
+Snapshot workflow
+-----------------
 
-Basic Emulator setup
---------------------
-To emulate one of the targets, the following folder structure is maintained(if possible):
+1. Dump memory and registers from a live target via ``ConcreteDevice``.
+2. Save the state to disk with ``GA_Em_Snapshot.save_to_file(path)``.
+3. Load the snapshot into Unicorn and run or single-step.
 
-.. code-block:: console
+Device-specific emulator setup
+--------------------------------
 
-    tree -L 2 ../../remote_devices/amlogic_S905X3 
-    ../../remote_devices/amlogic_S905X3
-    ├── emulated
-    │   ├── GA_emulator.py
-    │   └── snapshot.bin
-    ├── GA_debugger.py
-    ├── libs
-    │   ├── pyamlboot.py
-    ├── notes.md
-
-Notice the ``emulated`` folder, that contains the code for the hooks or emulator for this device.
-
-The code GA_emulator is expected to have several functions which setup the emulator:
+For each target a small ``GA_emulator.py`` file provides two hooks:
 
 .. code-block:: python
 
-    def emulator_setup(em : "GA_Emulator"):
+    def emulator_setup(em: "GA_Emulator"):
+        # map additional MMIO regions, register hook callbacks, etc.
         pass
 
-    def emulator_main(em : "GA_Emulator"):
+    def emulator_main(em: "GA_Emulator"):
+        # start emulation or run a test case
         pass
 
-When the emulator is setup, these functions will be executed. 
-
-GA Server
-*********
-Another advantage of this is that it should be possible to run multiple emulators from the ``GA Server``. 
-In the future this could then be used to scale emulation and vulnerability research.
+Pass the path to this file when constructing ``GA_Emulator`` (analogous to how ``ConcreteDevice`` loads device hooks).
 
