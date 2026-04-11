@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2320 270" width="2320" height="270" role="img" aria-labelledby="diagram-title diagram-desc">
+  <title id="diagram-title">Concrete Device to Ghidra sequence</title>
+  <desc id="diagram-desc">A workflow diagram showing loading Gupje, creating a ConcreteDevice, testing the connection, reading memory, connecting to Ghidra, mapping memory, and writing memory into Ghidra.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
+    </marker>
+    <style>
+      .label { font: 18px sans-serif; fill: #111827; }
+      .box-text { font: 17px sans-serif; fill: #111827; }
+      .small-text { font: 16px sans-serif; fill: #111827; }
+      .flow { stroke: #333333; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .return { stroke: #555555; stroke-width: 2.5; fill: none; }
+      .separator { stroke: #666666; stroke-width: 2; stroke-dasharray: 6 8; }
+    </style>
+  </defs>
+
+  <text class="label" x="18" y="118">Host - script</text>
+  <text class="label" x="70" y="232">target_device</text>
+  <line class="separator" x1="170" y1="170" x2="2310" y2="170"/>
+
+  <ellipse cx="220" cy="118" rx="32" ry="32" fill="#ffffff" stroke="#000000" stroke-width="3"/>
+  <ellipse cx="220" cy="118" rx="26" ry="26" fill="none" stroke="#000000" stroke-width="1.5"/>
+  <text class="small-text" x="220" y="124" text-anchor="middle">Start</text>
+
+  <rect x="300" y="88" width="320" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text class="box-text" x="460" y="124" text-anchor="middle">Load Gupje</text>
+
+  <rect x="345" y="200" width="230" height="40" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text class="small-text" x="460" y="219" text-anchor="middle">Receive Gupje binary</text>
+  <text class="small-text" x="460" y="236" text-anchor="middle">and jump into it</text>
+
+  <rect x="670" y="88" width="160" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text class="box-text" x="750" y="124" text-anchor="middle">setup ConcreteDevice</text>
+
+  <rect x="860" y="88" width="250" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text class="box-text" x="985" y="124" text-anchor="middle">test_connection</text>
+
+  <rect x="885" y="200" width="185" height="40" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text class="small-text" x="977.5" y="219" text-anchor="middle">recv PING and</text>
+  <text class="small-text" x="977.5" y="236" text-anchor="middle">reply PONG</text>
+
+  <rect x="1150" y="88" width="190" height="60" fill="#dae8fc" stroke="#6c8ebf" stroke-width="2"/>
+  <text class="box-text" x="1245" y="116" text-anchor="middle">read memory</text>
+  <text class="box-text" x="1245" y="136" text-anchor="middle">from device</text>
+
+  <rect x="1170" y="200" width="150" height="40" fill="#fff2cc" stroke="#d6b656" stroke-width="2"/>
+  <text class="small-text" x="1245" y="224" text-anchor="middle">gupje memread</text>
+
+  <rect x="1390" y="88" width="210" height="60" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text class="box-text" x="1495" y="116" text-anchor="middle">connect to</text>
+  <text class="box-text" x="1495" y="136" text-anchor="middle">Ghidra instance</text>
+
+  <rect x="1650" y="88" width="190" height="60" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text class="box-text" x="1745" y="116" text-anchor="middle">map memory</text>
+  <text class="box-text" x="1745" y="136" text-anchor="middle">in Ghidra</text>
+
+  <rect x="1900" y="88" width="190" height="60" fill="#d5e8d4" stroke="#82b366" stroke-width="2"/>
+  <text class="box-text" x="1995" y="116" text-anchor="middle">write memory</text>
+  <text class="box-text" x="1995" y="136" text-anchor="middle">to Ghidra</text>
+
+  <ellipse cx="2175" cy="118" rx="27" ry="27" fill="#ffffff" stroke="#000000" stroke-width="2.5"/>
+  <text class="small-text" x="2175" y="124" text-anchor="middle">Exit</text>
+
+  <path class="flow" d="M 252 118 H 300"/>
+  <path class="flow" d="M 620 118 H 670"/>
+  <path class="flow" d="M 830 118 H 860"/>
+  <path class="flow" d="M 1110 118 H 1150"/>
+  <path class="flow" d="M 1340 118 H 1390"/>
+  <path class="flow" d="M 1600 118 H 1650"/>
+  <path class="flow" d="M 1840 118 H 1900"/>
+  <path class="flow" d="M 2090 118 H 2148"/>
+
+  <path class="return" d="M 317 148 V 220 H 345"/>
+  <path class="return" d="M 575 220 H 600 V 148"/>
+
+  <path class="return" d="M 868 148 V 220 H 885"/>
+  <path class="return" d="M 1070 220 H 1095 V 148"/>
+
+  <path class="return" d="M 1150 148 V 220 H 1170"/>
+  <path class="return" d="M 1320 220 H 1335 V 148"/>
+</svg>

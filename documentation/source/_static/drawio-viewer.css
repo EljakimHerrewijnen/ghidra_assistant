@@ -1,0 +1,29 @@
+.drawio-viewer {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.drawio-viewer__loading,
+.drawio-viewer__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 1rem;
+  color: #334155;
+  text-align: center;
+}
+
+.drawio-viewer__frame {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  border: 0;
+  background: #ffffff;
+}

@@ -1,0 +1,15 @@
+dist/
+ghidra_assistant.egg-info/
+
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+
+# Virtualenvs and local env metadata
+.venv/
+.python-version
+.pdm-python
+
+# Test/build tooling caches
+.pytest_cache/
+.pdm-build/

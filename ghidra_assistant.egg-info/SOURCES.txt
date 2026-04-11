@@ -1,0 +1,6 @@
+README.md
+pyproject.toml
+ghidra_assistant.egg-info/PKG-INFO
+ghidra_assistant.egg-info/SOURCES.txt
+ghidra_assistant.egg-info/dependency_links.txt
+ghidra_assistant.egg-info/top_level.txt

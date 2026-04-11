@@ -1,0 +1,57 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "ghidra_assistant"
+dynamic = ["version"]
+authors = [
+    { name = "Eljakim Herrewijnen" },
+]
+description = "Assistant for ghidra"
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "tqdm",
+    "ghidra_bridge",
+    "capstone>=5.0.6",
+    "keystone-engine>=0.9.2",
+    "fastmcp",
+    "pytest>=9.0.2",
+    "unicorn>=2.1.4",
+]
+license = {text = "MIT"}
+
+[tool.pdm]
+package-dir = "src"
+distribution = true
+
+[tool.pdm.version]
+source = "file"
+path = "src/ghidra_assistant/__init__.py"
+
+[tool.pdm.dev-dependencies]
+dev = [
+  "ghidra-stubs",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
+    "sphinxcontrib-drawio",
+]
+
+[project.scripts]
+ghidra-assistant = "ghidra_assistant.ghidra_assistant:main"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]
