@@ -425,6 +425,60 @@ class ARM64_Concrete_State:
 
     # ================ ELR_EL ================
 
+    # ================ SP_EL ================
+    @property
+    def SP_EL2(self):
+        return self.read_config(SP_EL2)
+
+    @SP_EL2.setter
+    def SP_EL2(self, value : bytes):
+        self.write_config(SP_EL2, value)
+
+    @property
+    def SP_EL1(self):
+        return self.read_config(SP_EL1)
+
+    @SP_EL1.setter
+    def SP_EL1(self, value : bytes):
+        self.write_config(SP_EL1, value)
+
+    @property
+    def SP_EL0(self):
+        return self.read_config(SP_EL0)
+
+    @SP_EL0.setter
+    def SP_EL0(self, value : bytes):
+        self.write_config(SP_EL0, value)
+
+    # ================ SP_EL ================
+
+    # ================ SPSR_EL ================
+    @property
+    def SPSR_EL3(self):
+        return self.read_config(SPSR_EL3)
+
+    @SPSR_EL3.setter
+    def SPSR_EL3(self, value : bytes):
+        self.write_config(SPSR_EL3, value)
+
+    @property
+    def SPSR_EL2(self):
+        return self.read_config(SPSR_EL2)
+
+    @SPSR_EL2.setter
+    def SPSR_EL2(self, value : bytes):
+        self.write_config(SPSR_EL2, value)
+
+    @property
+    def SPSR_EL1(self):
+        return self.read_config(SPSR_EL1)
+
+    @SPSR_EL1.setter
+    def SPSR_EL1(self, value : bytes):
+        self.write_config(SPSR_EL1, value)
+
+    # ================ SPSR_EL ================
+
     # ================ MAIR_EL ================
 
     @property
