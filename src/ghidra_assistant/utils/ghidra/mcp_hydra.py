@@ -189,6 +189,15 @@ class MCPHydraBackend(GhidraBackend):
 
 		instances = self._fetch_instances()
 		if not instances:
+			direct_instance = self._try_direct_instance(
+				host=root_host,
+				port=root_port,
+				project_name=project_name,
+				file_name=file_name,
+			)
+			if direct_instance is not None:
+				instances = [direct_instance]
+		if not instances:
 			raise ValueError("No Hydra instances available (GET /instances failed or returned empty). Launch a Ghidra session and enable ghydraMCP in configure inside the tool!")
 		chosen = self._select_instance(instances, project_name, file_name)
 		if chosen is None:
@@ -245,6 +254,51 @@ class MCPHydraBackend(GhidraBackend):
 		if _result_ok(resp) and isinstance(resp.get("result"), list):
 			return resp["result"]
 		return []
+
+	def _try_direct_instance(
+		self,
+		*,
+		host: str,
+		port: int,
+		project_name: Optional[str],
+		file_name: Optional[str],
+	) -> Optional[Dict[str, Any]]:
+		"""Treat the supplied host/port as a direct instance when /instances is unavailable.
+
+		This is useful when callers already know the exact per-instance port and the
+		controller enumeration endpoint is broken or unavailable.
+		"""
+		direct_base = f"http://{host}:{port}/"
+		direct_http = _HydraClient(direct_base)
+		program_resp = direct_http.get("program")
+		if not _result_ok(program_resp) or not isinstance(program_resp.get("result"), dict):
+			return None
+
+		program_info = program_resp["result"]
+		program_name = _get_first(program_info, "name", "program", "file", "filename")
+		if not isinstance(program_name, str) or program_name in (None, ""):
+			return None
+		if file_name and program_name != file_name:
+			return None
+
+		project_resp = direct_http.get("project")
+		project_info = project_resp.get("result") if _result_ok(project_resp) else {}
+		project_value = None
+		if isinstance(project_info, dict):
+			project_value = _get_first(project_info, "name", "project")
+		if project_name and project_value not in (None, "", project_name):
+			# When the caller supplies a project_name, keep direct mode permissive only if
+			# the file_name already disambiguates the instance.
+			if not file_name:
+				return None
+
+		return {
+			"project": project_value,
+			"file": program_name,
+			"port": port,
+			"instance": direct_base.rstrip("/"),
+			"url": direct_base.rstrip("/"),
+		}
 
 	def _select_instance(self, instances: List[Dict[str, Any]], project_name: Optional[str], file_name: Optional[str]) -> Optional[Dict[str, Any]]:
 		if not instances:
@@ -315,6 +369,124 @@ class MCPHydraBackend(GhidraBackend):
 		if _result_ok(r) and isinstance(r["result"], dict):
 			return r["result"]
 		return None
+
+	def get_capabilities(self) -> Optional[Dict[str, Any]]:
+		"""Return server feature/capability flags (GET /capabilities)."""
+		r = self.http.get("capabilities")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	# -------- server version-control helpers --------
+
+	def server_status(self) -> Optional[Dict[str, Any]]:
+		"""Return shared-project/server connection status (GET /server/status)."""
+		r = self.http.get("server/status")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def server_sync(self, path: str, comment: str = "Synced via GhydraMCP", auto_add: bool = True,
+					 keep_checked_out: bool = False, exclusive_checkout: bool = False,
+					 force: bool = False, fail_if_modified: bool = False,
+					 allow_merge: bool = True) -> Dict[str, Any]:
+		payload = {
+			"path": path,
+			"comment": comment,
+			"auto_add": auto_add,
+			"keep_checked_out": keep_checked_out,
+			"exclusive_checkout": exclusive_checkout,
+			"force": force,
+			"fail_if_modified": fail_if_modified,
+			"allow_merge": allow_merge,
+		}
+		return self.http.post("server/version_control/sync", json=payload)
+
+	def server_sync_current(self, comment: str = "Synced via GhydraMCP", auto_add: bool = True,
+							keep_checked_out: bool = False, exclusive_checkout: bool = False,
+							force: bool = False, fail_if_modified: bool = False,
+							allow_merge: bool = True) -> Dict[str, Any]:
+		payload = {
+			"comment": comment,
+			"auto_add": auto_add,
+			"keep_checked_out": keep_checked_out,
+			"exclusive_checkout": exclusive_checkout,
+			"force": force,
+			"fail_if_modified": fail_if_modified,
+			"allow_merge": allow_merge,
+		}
+		return self.http.post("server/version_control/sync-current", json=payload)
+
+	def server_sync_bulk(self, paths: Sequence[str], comment: str = "Synced via GhydraMCP",
+						  auto_add: bool = True, keep_checked_out: bool = False,
+						  exclusive_checkout: bool = False, force: bool = False,
+						  fail_if_modified: bool = False, allow_merge: bool = True,
+						  continue_on_error: bool = True) -> Dict[str, Any]:
+		payload = {
+			"paths": ",".join(paths),
+			"comment": comment,
+			"auto_add": auto_add,
+			"keep_checked_out": keep_checked_out,
+			"exclusive_checkout": exclusive_checkout,
+			"force": force,
+			"fail_if_modified": fail_if_modified,
+			"allow_merge": allow_merge,
+			"continue_on_error": continue_on_error,
+		}
+		return self.http.post("server/version_control/sync-bulk", json=payload)
+
+	def server_sync_preflight(self, path: Optional[str] = None, *, current: bool = False,
+							 auto_add: bool = True) -> Dict[str, Any]:
+		params: Dict[str, Any] = {"current": current, "auto_add": auto_add}
+		if path is not None:
+			params["path"] = path
+		return self.http.get("server/version_control/sync-preflight", params=params)
+
+	def server_checkout(self, path: Optional[str] = None, *, current: bool = False,
+						exclusive: bool = False) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"current": current, "exclusive": exclusive}
+		if path is not None:
+			payload["path"] = path
+		return self.http.post("server/version_control/checkout", json=payload)
+
+	def server_checkin(self, path: Optional[str] = None, *, current: bool = False,
+					   comment: Optional[str] = None,
+					   keep_checked_out: bool = False) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"current": current, "keep_checked_out": keep_checked_out}
+		if path is not None:
+			payload["path"] = path
+		if comment is not None:
+			payload["comment"] = comment
+		return self.http.post("server/version_control/checkin", json=payload)
+
+	def server_undo_checkout(self, path: Optional[str] = None, *, current: bool = False,
+						 keep: bool = False) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"current": current, "keep": keep}
+		if path is not None:
+			payload["path"] = path
+		return self.http.post("server/version_control/undo_checkout", json=payload)
+
+	def server_file_status(self, path: Optional[str] = None, *, current: bool = False) -> Dict[str, Any]:
+		params: Dict[str, Any] = {"current": current}
+		if path is not None:
+			params["path"] = path
+		return self.http.get("server/version_control/file-status", params=params)
+
+	def server_repository_files(self, folder: str = "/", recursive: bool = True,
+							offset: int = 0, limit: int = 100) -> Dict[str, Any]:
+		params: Dict[str, Any] = {
+			"folder": folder,
+			"recursive": recursive,
+			"offset": offset,
+			"limit": limit,
+		}
+		return self.http.get("server/repository/files", params=params)
+
+	def server_version_history(self, path: Optional[str] = None, *, current: bool = False) -> Dict[str, Any]:
+		params: Dict[str, Any] = {"current": current}
+		if path is not None:
+			params["path"] = path
+		return self.http.get("server/version_history", params=params)
 
 	# -------- convenience API used by the app --------
 
@@ -478,16 +650,7 @@ class MCPHydraBackend(GhidraBackend):
 					return False
 			return True
 		# Single chunk write
-		addr = hex(address) if isinstance(address, int) else address
-		hexstr = data.hex()
-		# curl -X PATCH 'http://localhost:8192/memory?address=0xCE00BC82' \
-		# -H 'Content-Type: application/json' \
-		# -d '{"format":"hex","bytes":"90 90 90 90","force":true}'
-		r = self.http.patch(f"memory?address={addr}", json={"bytes": hexstr, "format": "hex", "force": str(force)})
-		if not r['success']:
-			logger.error(r['error'])
-			return False
-		return True
+		return self.write_memory(address, data, use_alias=True, force=bool(force))
 
 	def disassemble_function(self, address: str) -> List[str]:
 		r = self.http.get(f"functions/{address}/disassembly")
@@ -713,6 +876,14 @@ class MCPHydraBackend(GhidraBackend):
 		r = self.http.post("data", json=payload)
 		return bool(r.get("success"))
 
+	def data_create_region(self, address: str, data_type: str, size: int,
+						  name: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {"address": address, "type": data_type, "size": size}
+		if name:
+			payload["name"] = name
+		r = self.http.post("data/region", json=payload)
+		return bool(r.get("success"))
+
 	def data_rename(self, address: str, new_name: str) -> bool:
 		return self.data_update(address, name=new_name)
 
@@ -817,8 +988,63 @@ class MCPHydraBackend(GhidraBackend):
 		r = self.http.post("structs/delete", json={"name": name})
 		return bool(r.get("success"))
 
+	# -------- Data types API --------
+
+	def datatypes_list(self, *, name: Optional[str] = None, query: Optional[str] = None,
+					   exact: Optional[bool] = None, offset: int = 0, limit: int = 100,
+					   category: Optional[str] = None, kind: Optional[str] = None) -> Any:
+		params: Dict[str, Any] = {"offset": offset, "limit": limit}
+		if name is not None:
+			params["name"] = name
+		if query is not None:
+			params["query"] = query
+		if exact is not None:
+			params["exact"] = exact
+		if category is not None:
+			params["category"] = category
+		if kind is not None:
+			params["kind"] = kind
+		r = self.http.get("datatypes", params=params)
+		if _result_ok(r):
+			return r.get("result")
+		return None
+
+	def datatypes_create_struct(self, name: str, *, category: Optional[str] = None,
+							fields: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"name": name}
+		if category is not None:
+			payload["category"] = category
+		if fields is not None:
+			payload["fields"] = fields
+		return self.http.post("datatypes/struct", json=payload)
+
+	def datatypes_create_enum(self, name: str, *, category: Optional[str] = None,
+						  size: Optional[int] = None,
+						  values: Optional[Dict[str, int]] = None) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"name": name}
+		if category is not None:
+			payload["category"] = category
+		if size is not None:
+			payload["size"] = size
+		if values is not None:
+			payload["values"] = values
+		return self.http.post("datatypes/enum", json=payload)
+
+	def datatypes_create_union(self, name: str, *, category: Optional[str] = None,
+							fields: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+		payload: Dict[str, Any] = {"name": name}
+		if category is not None:
+			payload["category"] = category
+		if fields is not None:
+			payload["fields"] = fields
+		return self.http.post("datatypes/union", json=payload)
+
 	def functions_create(self, address: str) -> bool:
 		r = self.http.post("functions", json={"address": address})
+		return bool(r.get("success"))
+
+	def functions_delete(self, address: str) -> bool:
+		r = self.http.delete(f"functions/{address}")
 		return bool(r.get("success"))
 
 	def functions_get_variables(self, address: Optional[str] = None, name: Optional[str] = None) -> List[Dict[str, Any]]:
@@ -831,6 +1057,93 @@ class MCPHydraBackend(GhidraBackend):
 		if _result_ok(r) and isinstance(r["result"], list):
 			return r["result"]
 		return []
+
+	def functions_update_variable(self, function_address: str, variable_name: str,
+							  *, name: Optional[str] = None,
+							  data_type: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {}
+		if name is not None:
+			payload["name"] = name
+		if data_type is not None:
+			payload["data_type"] = data_type
+		if not payload:
+			return True
+		r = self.http.patch(f"functions/{function_address}/variables/{quote(variable_name)}", json=payload)
+		return bool(r.get("success"))
+
+	def functions_apply_struct(self, function_address: str, variable_name: str,
+					   struct_name: str, *, as_pointer: bool = True,
+					   new_name: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {"struct_name": struct_name, "as_pointer": as_pointer}
+		if new_name is not None:
+			payload["new_name"] = new_name
+		r = self.http.patch(f"functions/{function_address}/variables/{quote(variable_name)}/struct", json=payload)
+		return bool(r.get("success"))
+
+	def functions_apply_struct_by_name(self, function_name: str, variable_name: str,
+						   struct_name: str, *, as_pointer: bool = True,
+						   new_name: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {"struct_name": struct_name, "as_pointer": as_pointer}
+		if new_name is not None:
+			payload["new_name"] = new_name
+		r = self.http.patch(f"functions/by-name/{quote(function_name)}/variables/{quote(variable_name)}/struct", json=payload)
+		return bool(r.get("success"))
+
+	def functions_get_comments(self, address: str) -> Optional[Dict[str, Any]]:
+		r = self.http.get(f"functions/{address}/comments")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
+
+	def functions_set_comments(self, address: str, *, plate: Optional[str] = None,
+					  decompiler_comment: Optional[str] = None,
+					  disassembly_comment: Optional[str] = None,
+					  eol_comment: Optional[str] = None) -> bool:
+		payload: Dict[str, Any] = {}
+		if plate is not None:
+			payload["plate"] = plate
+		if decompiler_comment is not None:
+			payload["decompiler_comment"] = decompiler_comment
+		if disassembly_comment is not None:
+			payload["disassembly_comment"] = disassembly_comment
+		if eol_comment is not None:
+			payload["eol_comment"] = eol_comment
+		if not payload:
+			return True
+		r = self.http.patch(f"functions/{address}/comments", json=payload)
+		return bool(r.get("success"))
+
+	def functions_clear_comments(self, address: str, comment_type: str = "all") -> bool:
+		r = self.http.delete(f"functions/{address}/comments", params={"type": comment_type})
+		return bool(r.get("success"))
+
+	def get_function_callers(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+		r = self.http.get(f"functions/{address}/callers", params={"offset": offset, "limit": limit})
+		if not _result_ok(r):
+			return []
+		result = r.get("result")
+		if isinstance(result, list):
+			return result
+		if isinstance(result, dict) and isinstance(result.get("functions"), list):
+			return result["functions"]
+		return []
+
+	def get_function_callees(self, address: str, offset: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
+		r = self.http.get(f"functions/{address}/callees", params={"offset": offset, "limit": limit})
+		if not _result_ok(r):
+			return []
+		result = r.get("result")
+		if isinstance(result, list):
+			return result
+		if isinstance(result, dict) and isinstance(result.get("functions"), list):
+			return result["functions"]
+		return []
+
+	def get_function_hash(self, address: str) -> Optional[Dict[str, Any]]:
+		r = self.http.get(f"functions/{address}/hash")
+		if _result_ok(r) and isinstance(r["result"], dict):
+			return r["result"]
+		return None
 
 	# UI helpers
 	def get_current_address(self) -> int:
@@ -906,6 +1219,12 @@ class MCPHydraBackend(GhidraBackend):
 		if not r.get("success"):
 			logger.warning("clear_background_color failed: %s", r.get("error", "unknown error"))
 
+	def clear_background_color_at(self, address: int | str) -> bool:
+		"""Clear background color at a single address."""
+		addr = hex(address) if isinstance(address, int) else str(address)
+		r = self.http.delete(f"memory/{addr}/background-color")
+		return bool(r.get("success"))
+
 	def get_ghidra_memory_maps(self) -> List[Any]:
 		# Try via documented segments endpoint if available
 		segs = self.memory_list_segments()
@@ -921,10 +1240,17 @@ class MCPHydraBackend(GhidraBackend):
 
 	def memory_list_segments(self) -> List[Dict[str, Any]]:
 		"""List memory segments/blocks if the endpoint is available."""
-		for ep in ("memory/segments", "segments"):
+		for ep in ("memory/blocks", "memory/segments", "segments"):
 			r = self.http.get(ep)
 			if _result_ok(r) and isinstance(r["result"], list):
 				return r["result"]
+		return []
+
+	def memory_list_blocks(self) -> List[Dict[str, Any]]:
+		"""List memory blocks via GET /memory/blocks."""
+		r = self.http.get("memory/blocks")
+		if _result_ok(r) and isinstance(r["result"], list):
+			return r["result"]
 		return []
 
 	def memory_find_segment_containing(self, address: int | str) -> Optional[Dict[str, Any]]:
@@ -947,6 +1273,19 @@ class MCPHydraBackend(GhidraBackend):
 							   read: bool = True, write: bool = True, execute: bool = False,
 							   overlay: bool = False, initialized: bool = True, fill: int = 0) -> bool:
 		addr = hex(address) if isinstance(address, int) else address
+		payload_blocks = {
+			"name": name,
+			"address": addr,
+			"size": size,
+			"readable": read,
+			"writable": write,
+			"executable": execute,
+			"initialized": initialized,
+		}
+		rb = self.http.post("memory/blocks", json=payload_blocks)
+		if rb.get("success"):
+			return True
+
 		payload = {
 			"name": name,
 			"address": addr,
@@ -963,10 +1302,33 @@ class MCPHydraBackend(GhidraBackend):
 		return False
 
 	def memory_delete_segment(self, name_or_id: str) -> bool:
-		for ep in (f"memory/segments/{name_or_id}", f"segments/{name_or_id}"):
+		for ep in (f"memory/blocks/{name_or_id}", f"memory/segments/{name_or_id}", f"segments/{name_or_id}"):
 			r = self.http.delete(ep)
 			if r.get("success"):
 				return True
+		return False
+
+	def write_memory(self, address: int | str, data: bytes, *, use_alias: bool = True,
+					 force: bool = True) -> bool:
+		"""Write raw bytes using documented memory write endpoints."""
+		addr = hex(address) if isinstance(address, int) else str(address)
+		hexstr = data.hex()
+		payload = {"bytes": hexstr, "format": "hex", "force": force}
+
+		r = self.http.patch(f"memory/{addr}", json=payload)
+		if r.get("success"):
+			return True
+
+		r2 = self.http._request("PUT", f"memory/{addr}", json=payload)
+		if r2.get("success"):
+			return True
+
+		if use_alias:
+			alias_payload = {"address": addr, "bytes": hexstr, "format": "hex", "force": force}
+			for method in ("POST", "PUT", "PATCH"):
+				r3 = self.http._request(method, "memory/write", json=alias_payload)
+				if r3.get("success"):
+					return True
 		return False
 
 	def memory_update_segment_permissions(self, name_or_id: str, *, read: Optional[bool] = None,
@@ -1006,4 +1368,11 @@ class MCPHydraBackend(GhidraBackend):
 		params = {"address": address, "direction": direction, "max_steps": max_steps}
 		r = self.http.get("analysis/dataflow", params=params)
 		return r
+
+	# -------- Batch automation --------
+
+	def run_batch(self, ops: List[Dict[str, Any]], rollback_on_error: bool = True) -> Dict[str, Any]:
+		"""Execute grouped transactional operations (POST /transactions/run-batch)."""
+		payload = {"ops": ops, "rollback_on_error": rollback_on_error}
+		return self.http.post("transactions/run-batch", json=payload)
 

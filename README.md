@@ -23,11 +23,11 @@ A Python toolkit that bridges [Ghidra](https://github.com/NationalSecurityAgency
 
 ## Backends
 
-| Backend        | Description |
-|----------------|-------------|
-| `mcp_hydra`    | **Default.** Connects to the [ghydraMCP](https://github.com/LaurieWired/GhidraMCP) Ghidra plugin via its HATEOAS HTTP API. Supports multiple open Ghidra instances. |
-| `mcp`          | Connects to a simple HTTP server plugin for Ghidra. |
-| `ghidra_bridge`| Legacy Python-2-to-3 bridge via `ghidra_bridge`. |
+| Backend        | Description | State |
+|----------------|-------------|-------|
+| `mcp_hydra`    | **Default.** Connects to the [ghydraMCP](https://github.com/EljakimHerrewijnen/GhydraMCP) Ghidra plugin via its HATEOAS HTTP API. Supports multiple open Ghidra instances. | maintained |
+| `mcp`          | Connects to a simple HTTP server plugin for Ghidra. Used when communicating with the GhidraMCP plugin | deprecated |
+| `ghidra_bridge`| Legacy Python-2-to-3 bridge via `ghidra_bridge`. | deprecated |
 
 ## Development with PDM
 
