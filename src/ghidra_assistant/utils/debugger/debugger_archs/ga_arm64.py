@@ -55,7 +55,7 @@ class GA_arm64_debugger(BaseArch_debugger):
             Bytes
         '''
         mem_param = struct.pack('<QI', offset, size)
-        return self._memdump_region_impl(mem_param, size, clear_read_size=0x200)
+        return self._memdump_region_impl(mem_param, size)
 
     def memdump_region_small(self, offset, size):
         '''
@@ -100,7 +100,7 @@ class GA_arm64_debugger(BaseArch_debugger):
         '''
         size = len(data)
         mem_param = struct.pack('<QI', address, size)
-        self._memwrite_region_impl(mem_param, data, ok_read_size=2)
+        self._memwrite_region_impl(mem_param, data)
 
     def restore_and_jump(self, address : int):
         self.state.DEBUGGER_JUMP = struct.pack("<Q", address)

@@ -81,12 +81,12 @@ class GA_riscv_debugger(BaseArch_debugger):
 
     def memdump_region(self, offset, size):
         mem_param = self._pack_peek_poke_params(offset, size)
-        return self._memdump_region_impl(mem_param, size, clear_read_size=0x200)
+        return self._memdump_region_impl(mem_param, size)
 
     def memwrite_region(self, address, data):
         size = len(data)
         mem_param = self._pack_peek_poke_params(address, size)
-        self._memwrite_region_impl(mem_param, data, ok_read_size=2)
+        self._memwrite_region_impl(mem_param, data)
 
     def get_debugger_location(self):
         self.write(b"SELF")

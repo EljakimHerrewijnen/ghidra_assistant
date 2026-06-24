@@ -27,10 +27,10 @@ class Mem:
             start = key.start
             size = key.stop - start
 
-            return self.cd.memwrite_region(start, value, True)
+            return self.cd.memwrite_region(start, value)
         else:
             # Handle single item access if needed
-            return self.cd.memwrite_region(key, value, True)
+            return self.cd.memwrite_region(key, value)
 
 class ConcreteDevice():
     '''

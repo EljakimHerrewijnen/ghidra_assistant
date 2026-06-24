@@ -11,6 +11,10 @@ class BaseArch_debugger():
         self.debugger_addr = debugger_addr
         self.storage_addr = storage_addr
         self.transmission_size=transmission_size
+        # Size of the Gupje debugger's per-block POKE acknowledgement ("OK").
+        # Part of the generic Gupje protocol; the transport (read/write) is the
+        # caller's responsibility.
+        self.ok_read_size = 2
         self.sc = ShellcodeCrafter(None, None)
 
     def create_debugger_vbar(self) -> bytes:
@@ -52,7 +56,7 @@ class BaseArch_debugger():
     def ks_to_bytes(self, ks_code):
         return b"".join([int.to_bytes(x, 1, "little") for x in ks_code[0]])
 
-    def _memdump_region_impl(self, mem_param: bytes, size: int, clear_read_size: int | None = None) -> bytes:
+    def _memdump_region_impl(self, mem_param: bytes, size: int) -> bytes:
         """Shared implementation for PEEK-based memory reads."""
         self.write(b"PEEK")
         self.write(mem_param)
@@ -67,17 +71,17 @@ class BaseArch_debugger():
                 self.write(b"ACK\x00")
             received += d
 
-        if size >= self.transmission_size:
-            if clear_read_size is not None:
-                try:
-                    self.read(clear_read_size)
-                except Exception:
-                    pass
+        # The Gupje PEEK loop is `for (i = 0; i <= size; i += block)`, so when
+        # size is an exact multiple of the block size it runs one extra
+        # iteration: a zero-byte send (no data) followed by a final ACK round.
+        # For non-multiple sizes there is no extra round, so acking here would
+        # desync the stream.
+        if size > 0 and size % self.transmission_size == 0:
             self.write(b"ACK\x00")
 
         return received
 
-    def _memwrite_region_impl(self, mem_param: bytes, data: bytes, ok_read_size: int = 2) -> None:
+    def _memwrite_region_impl(self, mem_param: bytes, data: bytes) -> None:
         """Shared implementation for POKE-based memory writes."""
         self.write(b"POKE")
         self.write(mem_param)
@@ -92,9 +96,11 @@ class BaseArch_debugger():
             payload = payload[remaining:]
 
             self.write(send)
-            message = self.read(ok_read_size)
+            # Gupje acknowledges each written block with "OK"; reply with ACK so
+            # the device proceeds to the next block (or returns to its command
+            # loop after the last one).
+            message = self.read(self.ok_read_size)
             if not message.startswith(b"OK"):
-                error("Error on writing data to device!")
-                return
+                raise RuntimeError(f"Error writing data to device: expected OK, got {message!r}")
             self.write(b"ACK\x00")
 

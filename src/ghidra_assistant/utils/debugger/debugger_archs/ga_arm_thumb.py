@@ -34,7 +34,7 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
             Bytes
         '''
         mem_param = struct.pack('<III', offset, size, 0) #Send extra 4 bytes to fill the 12 byte buffer
-        return self._memdump_region_impl(mem_param, size, clear_read_size=0)
+        return self._memdump_region_impl(mem_param, size)
 
     def memwrite_region(self, address, data):
         '''
@@ -48,7 +48,7 @@ class GA_arm_thumb_debugger(BaseArch_debugger):
         '''
         size = len(data)
         mem_param = struct.pack('<III', address, size, 0) #Send extra 4 bytes to fill the 12 byte buffer
-        self._memwrite_region_impl(mem_param, data, ok_read_size=2)
+        self._memwrite_region_impl(mem_param, data)
 
 
     def get_debugger_location(self):
