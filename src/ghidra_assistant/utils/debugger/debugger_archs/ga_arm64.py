@@ -41,6 +41,32 @@ class GA_arm64_debugger(BaseArch_debugger):
         self.write(packet)
         self.read(self.transmission_size)
 
+    def memread_io(self, address, size):
+        '''
+        Read `size` bytes from a memory-mapped IO region using 32-bit (word)
+        accesses (RDIO command). PEEK reads byte-by-byte, which returns garbage
+        for word-only registers (e.g. the SSS crypto engine). `size` should be a
+        multiple of 4 and <= 0x100.
+
+        Returns the bytes read.
+        '''
+        self.write(b"RDIO")
+        self.write(struct.pack('<QI', address, size))
+        return self.read(size)
+
+    def memwrite_io_words(self, address, data):
+        '''
+        Write `data` to a memory-mapped IO region using 32-bit (word) accesses
+        (WRIO command). Unlike memwrite_io (HWIO, byte-by-byte), this preserves
+        word semantics for registers that require 32-bit writes. `len(data)` must
+        be a multiple of 4 and <= 0x100.
+        '''
+        assert len(data) % 4 == 0 and len(data) <= 0x100, "WRIO size must be 4-aligned and <= 0x100"
+        self.write(b"WRIO")
+        self.write(struct.pack('<QI', address, len(data)))
+        self.write(bytes(data))
+        self.read(self.transmission_size)
+
     def memdump_region(self, offset, size):
         '''
         Dump a region from target device. Based on an offset/address and size:
